@@ -20,7 +20,8 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-
+      - name: Resolve package configuration
+        run: flutter pub get 
       - name: Format Dart files
         run: dart format lib test
 
