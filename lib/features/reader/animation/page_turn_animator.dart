@@ -19,7 +19,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
+export '../reader_widgets.dart' show PageTurnAnimator, SlidePageTurnAnimator;
 import '../reader_models.dart' show ReaderLayout, SpreadMath;
 import '../reader_widgets.dart';
 import 'page_curl_geometry.dart';
