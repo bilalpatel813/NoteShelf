@@ -1,6 +1,7 @@
 // T3 reader tests. No device or plugins needed: `flutter test test/reader`.
 import 'package:booknotes/core/models/book.dart';
-import 'package:booknotes/data/storage/book_store.dart' show FontSettings, PageInfo;
+import 'package:booknotes/data/storage/book_store.dart'
+    show FontSettings, PageInfo;
 import 'package:booknotes/data/storage/storage_backend.dart';
 import 'package:booknotes/features/reader/reader_controller.dart';
 import 'package:booknotes/features/reader/reader_models.dart';
@@ -30,18 +31,30 @@ class FakeStorage implements ReaderStorage {
   final writes = <String>[];
   var _next = 100;
 
-  String _name(int i) => '${pages[i].heading}-${(i + 1).toString().padLeft(3, '0')}.txt';
+  String _name(int i) =>
+      '${pages[i].heading}-${(i + 1).toString().padLeft(3, '0')}.txt';
 
   @override
   Future<List<PageInfo>> pageInfos(String bookId) async => [
-        for (var i = 0; i < pages.length; i++)
-          PageInfo(id: pages[i].id, number: i + 1, fileName: _name(i), heading: pages[i].heading),
-      ];
+    for (var i = 0; i < pages.length; i++)
+      PageInfo(
+        id: pages[i].id,
+        number: i + 1,
+        fileName: _name(i),
+        heading: pages[i].heading,
+      ),
+  ];
 
   @override
-  Future<BookPage?> readPage(String bookId, int n) async => n < 1 || n > pages.length
+  Future<BookPage?> readPage(String bookId, int n) async =>
+      n < 1 || n > pages.length
       ? null
-      : BookPage(bookId: bookId, number: n, fileName: _name(n - 1), content: pages[n - 1].text);
+      : BookPage(
+          bookId: bookId,
+          number: n,
+          fileName: _name(n - 1),
+          content: pages[n - 1].text,
+        );
 
   @override
   Future<BookPage> createPage(String bookId, {int? atNumber}) async {
@@ -54,7 +67,8 @@ class FakeStorage implements ReaderStorage {
   Future<void> writePage(BookPage page, {bool force = false}) async {
     final f = failWrite;
     if (f != null) throw f;
-    final i = [for (var k = 0; k < pages.length; k++) _name(k)].indexOf(page.fileName);
+    final i = [for (var k = 0; k < pages.length; k++) _name(k)]
+        .indexOf(page.fileName);
     if (i < 0) {
       throw const StorageException(StorageErrorKind.conflict, 'renumbered');
     }
@@ -74,22 +88,32 @@ class FakeStorage implements ReaderStorage {
   @override
   Future<FontSettings> getFontSettings(String bookId) async => fonts;
   @override
-  Future<void> setFontSettings(String bookId, FontSettings f) async => fonts = f;
+  Future<void> setFontSettings(String bookId, FontSettings f) async =>
+      fonts = f;
   @override
-  Future<void> markOpened(String bookId, {int? page}) async => lastOpenedPage = page;
+  Future<void> markOpened(String bookId, {int? page}) async =>
+      lastOpenedPage = page;
 }
 
 Book _book({int last = 1, ReadingMode mode = ReadingMode.singlePage}) => Book(
-    id: 'b1',
-    title: 'Physics',
-    subject: 'Science',
-    folderRef: '/x',
-    lastOpenedPage: last,
-    preferredReadingMode: mode);
+  id: 'b1',
+  title: 'Physics',
+  subject: 'Science',
+  folderRef: '/x',
+  lastOpenedPage: last,
+  preferredReadingMode: mode,
+);
 
-Future<ReaderController> _open(FakeStorage s,
-    {Book? book, Duration delay = const Duration(milliseconds: 20)}) async {
-  final c = ReaderController(book: book ?? _book(), storage: s, autosaveDelay: delay);
+Future<ReaderController> _open(
+  FakeStorage s, {
+  Book? book,
+  Duration delay = const Duration(milliseconds: 20),
+}) async {
+  final c = ReaderController(
+    book: book ?? _book(),
+    storage: s,
+    autosaveDelay: delay,
+  );
   await c.open();
   return c;
 }
@@ -99,12 +123,24 @@ void main() {
     test('folded shows one page', () {
       expect(SpreadMath.spreadFor(3, 5, ReaderLayout.folded), const Spread(3));
     });
-    test('unfolded pairs (1,2)(3,4) and anchors even pages to the odd left page', () {
-      expect(SpreadMath.spreadFor(1, 6, ReaderLayout.unfolded), const Spread(1, 2));
-      expect(SpreadMath.spreadFor(4, 6, ReaderLayout.unfolded), const Spread(3, 4));
-    });
+    test(
+      'unfolded pairs (1,2)(3,4) and anchors even pages to the odd left page',
+      () {
+        expect(
+          SpreadMath.spreadFor(1, 6, ReaderLayout.unfolded),
+          const Spread(1, 2),
+        );
+        expect(
+          SpreadMath.spreadFor(4, 6, ReaderLayout.unfolded),
+          const Spread(3, 4),
+        );
+      },
+    );
     test('odd final page has no right page', () {
-      expect(SpreadMath.spreadFor(5, 5, ReaderLayout.unfolded), const Spread(5, null));
+      expect(
+        SpreadMath.spreadFor(5, 5, ReaderLayout.unfolded),
+        const Spread(5, null),
+      );
       expect(SpreadMath.label(const Spread(5), 5), 'Page 5 of 5');
       expect(SpreadMath.label(const Spread(3, 4), 5), 'Pages 3\u20134 of 5');
     });
@@ -121,19 +157,27 @@ void main() {
   group('TypographySettings', () {
     test('round-trips through T2 FontSettings JSON', () {
       const t = TypographySettings(
-          family: 'Lora',
-          size: 22,
-          weight: 700,
-          lineHeight: 1.8,
-          paragraphSpacing: 12,
-          align: TextAlign.justify,
-          color: Color(0xFF1F3A5F));
-      final back = TypographySettings.fromStored(FontSettings.fromJson(t.toStored().toJson()));
+        family: 'Lora',
+        size: 22,
+        weight: 700,
+        lineHeight: 1.8,
+        paragraphSpacing: 12,
+        align: TextAlign.justify,
+        color: Color(0xFF1F3A5F),
+      );
+      final back = TypographySettings.fromStored(
+        FontSettings.fromJson(t.toStored().toJson()),
+      );
       expect(back, t);
     });
     test('old settings files (family/size/lineHeight only) still load', () {
       final t = TypographySettings.fromStored(
-          FontSettings.fromJson({'family': 'Arial', 'size': 20, 'lineHeight': 1.4}));
+        FontSettings.fromJson({
+          'family': 'Arial',
+          'size': 20,
+          'lineHeight': 1.4,
+        }),
+      );
       expect(t.family, 'Arial');
       expect(t.weight, 400);
       expect(t.align, TextAlign.left);
@@ -147,26 +191,36 @@ void main() {
   });
 
   group('ReaderController', () {
-    test('opens in Edit mode on the last opened page with stored typography', () async {
-      final s = FakeStorage(5)..fonts = const FontSettings(family: 'Lora', size: 24, weight: 600);
-      final c = await _open(s, book: _book(last: 3));
-      expect(c.mode, ReaderMode.edit);
-      expect(c.currentPage, 3);
-      expect(c.typography.family, 'Lora');
-      expect(c.typography.size, 24);
-      expect(c.typography.weight, 600);
-      expect(c.bufferFor(3)!.text.text, 'text 3');
-      c.dispose();
-    });
+    test(
+      'opens in Edit mode on the last opened page with stored typography',
+      () async {
+        final s = FakeStorage(5)
+          ..fonts = const FontSettings(family: 'Lora', size: 24, weight: 600);
+        final c = await _open(s, book: _book(last: 3));
+        expect(c.mode, ReaderMode.edit);
+        expect(c.currentPage, 3);
+        expect(c.typography.family, 'Lora');
+        expect(c.typography.size, 24);
+        expect(c.typography.weight, 600);
+        expect(c.bufferFor(3)!.text.text, 'text 3');
+        c.dispose();
+      },
+    );
 
-    test('twoPageSpread preference opens unfolded and loads both pages', () async {
-      final s = FakeStorage(5);
-      final c = await _open(s, book: _book(last: 4, mode: ReadingMode.twoPageSpread));
-      expect(c.layout, ReaderLayout.unfolded);
-      expect(c.spread, const Spread(3, 4));
-      expect(c.bufferFor(3)!.loaded && c.bufferFor(4)!.loaded, isTrue);
-      c.dispose();
-    });
+    test(
+      'twoPageSpread preference opens unfolded and loads both pages',
+      () async {
+        final s = FakeStorage(5);
+        final c = await _open(
+          s,
+          book: _book(last: 4, mode: ReadingMode.twoPageSpread),
+        );
+        expect(c.layout, ReaderLayout.unfolded);
+        expect(c.spread, const Spread(3, 4));
+        expect(c.bufferFor(3)!.loaded && c.bufferFor(4)!.loaded, isTrue);
+        c.dispose();
+      },
+    );
 
     test('last page out of range is clamped', () async {
       final c = await _open(FakeStorage(2), book: _book(last: 99));
@@ -174,19 +228,22 @@ void main() {
       c.dispose();
     });
 
-    test('typed text survives navigating away and back, before any save', () async {
-      final s = FakeStorage(3);
-      final c = await _open(s, delay: const Duration(hours: 1));
-      c.bufferFor(1)!.text.text = 'my edit';
-      await c.next();
-      await c.next();
-      await c.previous();
-      await c.previous();
-      expect(c.bufferFor(1)!.text.text, 'my edit');
-      expect(c.hasUnsavedChanges, isTrue);
-      expect(s.pages[0].text, 'text 1'); // disk untouched until flush
-      c.dispose();
-    });
+    test(
+      'typed text survives navigating away and back, before any save',
+      () async {
+        final s = FakeStorage(3);
+        final c = await _open(s, delay: const Duration(hours: 1));
+        c.bufferFor(1)!.text.text = 'my edit';
+        await c.next();
+        await c.next();
+        await c.previous();
+        await c.previous();
+        expect(c.bufferFor(1)!.text.text, 'my edit');
+        expect(c.hasUnsavedChanges, isTrue);
+        expect(s.pages[0].text, 'text 1'); // disk untouched until flush
+        c.dispose();
+      },
+    );
 
     test('autosave writes after the delay and marks saved', () async {
       final s = FakeStorage(2);
@@ -217,7 +274,10 @@ void main() {
       final s = FakeStorage(1);
       final c = await _open(s, delay: const Duration(hours: 1));
       c.bufferFor(1)!.text.text = 'mine';
-      s.failWrite = const StorageException(StorageErrorKind.conflict, 'changed outside');
+      s.failWrite = const StorageException(
+        StorageErrorKind.conflict,
+        'changed outside',
+      );
       expect(await c.flush(), isFalse);
       expect(c.bufferFor(1)!.conflict, isTrue);
       s.failWrite = null;
@@ -227,18 +287,24 @@ void main() {
       c.dispose();
     });
 
-    test('addPage flushes dirty text first, renumbers and opens the new page', () async {
-      final s = FakeStorage(3);
-      final c = await _open(s, delay: const Duration(hours: 1));
-      c.bufferFor(1)!.text.text = 'before add';
-      expect(await c.addPage(), isTrue);
-      expect(s.pages[0].text, 'before add');
-      expect(c.pageCount, 4);
-      expect(c.currentPage, 2);
-      expect(c.bufferFor(2)!.text.text, '');
-      expect(c.bufferFor(3)!.id, 'id2'); // old page 2 moved, kept its identity
-      c.dispose();
-    });
+    test(
+      'addPage flushes dirty text first, renumbers and opens the new page',
+      () async {
+        final s = FakeStorage(3);
+        final c = await _open(s, delay: const Duration(hours: 1));
+        c.bufferFor(1)!.text.text = 'before add';
+        expect(await c.addPage(), isTrue);
+        expect(s.pages[0].text, 'before add');
+        expect(c.pageCount, 4);
+        expect(c.currentPage, 2);
+        expect(c.bufferFor(2)!.text.text, '');
+        expect(
+          c.bufferFor(3)!.id,
+          'id2',
+        ); // old page 2 moved, kept its identity
+        c.dispose();
+      },
+    );
 
     test('addPage is aborted and text kept when the flush fails', () async {
       final s = FakeStorage(2);
@@ -283,20 +349,28 @@ void main() {
       c.dispose();
     });
 
-    test('switching to View mode saves; typography never touches TXT', () async {
-      final s = FakeStorage(2);
-      final c = await _open(s, delay: const Duration(hours: 1));
-      c.bufferFor(1)!.text.text = 'edited';
-      c.setMode(ReaderMode.view);
-      await c.flush();
-      expect(s.pages[0].text, 'edited');
-      await c.setTypography(
-          c.typography.copyWith(family: 'Merriweather', size: 30, align: TextAlign.center));
-      expect(s.pages[0].text, 'edited');
-      expect(s.fonts.family, 'Merriweather');
-      expect(s.fonts.align, 'center');
-      c.dispose();
-    });
+    test(
+      'switching to View mode saves; typography never touches TXT',
+      () async {
+        final s = FakeStorage(2);
+        final c = await _open(s, delay: const Duration(hours: 1));
+        c.bufferFor(1)!.text.text = 'edited';
+        c.setMode(ReaderMode.view);
+        await c.flush();
+        expect(s.pages[0].text, 'edited');
+        await c.setTypography(
+          c.typography.copyWith(
+            family: 'Merriweather',
+            size: 30,
+            align: TextAlign.center,
+          ),
+        );
+        expect(s.pages[0].text, 'edited');
+        expect(s.fonts.family, 'Merriweather');
+        expect(s.fonts.align, 'center');
+        c.dispose();
+      },
+    );
 
     test('layout switch keeps position on an anchor and loads pages', () async {
       final s = FakeStorage(5);
@@ -311,18 +385,21 @@ void main() {
       c.dispose();
     });
 
-    test('close records the page and discardUnsaved restores saved text', () async {
-      final s = FakeStorage(3);
-      final c = await _open(s, delay: const Duration(hours: 1));
-      await c.goTo(2);
-      expect(await c.close(), isTrue);
-      expect(s.lastOpenedPage, 2);
-      c.bufferFor(2)!.text.text = 'oops';
-      c.discardUnsaved();
-      expect(c.bufferFor(2)!.text.text, 'text 2');
-      expect(c.hasUnsavedChanges, isFalse);
-      c.dispose();
-    });
+    test(
+      'close records the page and discardUnsaved restores saved text',
+      () async {
+        final s = FakeStorage(3);
+        final c = await _open(s, delay: const Duration(hours: 1));
+        await c.goTo(2);
+        expect(await c.close(), isTrue);
+        expect(s.lastOpenedPage, 2);
+        c.bufferFor(2)!.text.text = 'oops';
+        c.discardUnsaved();
+        expect(c.bufferFor(2)!.text.text, 'text 2');
+        expect(c.hasUnsavedChanges, isFalse);
+        c.dispose();
+      },
+    );
   });
 
   group('ReaderScreen widgets', () {
@@ -330,16 +407,21 @@ void main() {
       t.view.physicalSize = const Size(1400, 900);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
-      await t.pumpWidget(MaterialApp(
-        home: ReaderScreen(
+      await t.pumpWidget(
+        MaterialApp(
+          home: ReaderScreen(
             book: book ?? _book(),
             storage: s,
-            autosaveDelay: const Duration(hours: 1)),
-      ));
+            autosaveDelay: const Duration(hours: 1),
+          ),
+        ),
+      );
       await t.pumpAndSettle();
     }
 
-    testWidgets('edit mode shows editor + controls; view mode hides them', (t) async {
+    testWidgets('edit mode shows editor + controls; view mode hides them', (
+      t,
+    ) async {
       final s = FakeStorage(3);
       await pump(t, s);
       expect(find.byType(TextField), findsOneWidget);
@@ -371,16 +453,18 @@ void main() {
       expect(find.text('hello world'), findsOneWidget);
     });
 
-    testWidgets('unfolded shows two pages and a blank right side on an odd last page',
-        (t) async {
-      final s = FakeStorage(3);
-      await pump(t, s, book: _book(mode: ReadingMode.twoPageSpread));
-      expect(find.text('Pages 1\u20132 of 3'), findsOneWidget);
-      expect(find.byType(TextField), findsNWidgets(2));
-      await t.tap(find.byTooltip('Next (Alt+Right)'));
-      await t.pumpAndSettle();
-      expect(find.text('Page 3 of 3'), findsOneWidget);
-      expect(find.byType(TextField), findsOneWidget);
-    });
+    testWidgets(
+      'unfolded shows two pages and a blank right side on an odd last page',
+      (t) async {
+        final s = FakeStorage(3);
+        await pump(t, s, book: _book(mode: ReadingMode.twoPageSpread));
+        expect(find.text('Pages 1\u20132 of 3'), findsOneWidget);
+        expect(find.byType(TextField), findsNWidgets(2));
+        await t.tap(find.byTooltip('Next (Alt+Right)'));
+        await t.pumpAndSettle();
+        expect(find.text('Page 3 of 3'), findsOneWidget);
+        expect(find.byType(TextField), findsOneWidget);
+      },
+    );
   });
 }

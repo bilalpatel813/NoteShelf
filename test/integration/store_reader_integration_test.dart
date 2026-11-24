@@ -33,7 +33,9 @@ void main() {
 
   test('create, edit, autosave/flush, restart: book, text, typography and page persist', () async {
     var s = await TxtStorage.open(libraryRoot: root);
-    final book = await s.books.createBook(const NewBookRequest(title: 'Journal'));
+    final book = await s.books.createBook(
+      const NewBookRequest(title: 'Journal'),
+    );
     await s.pages.createPage(book.id); // 2 pages
 
     final c = ReaderController(
@@ -45,7 +47,9 @@ void main() {
     c.bufferFor(1)!.text.text = 'hello world';
     await c.flush();
     expect(c.hasUnsavedChanges, isFalse);
-    await c.setTypography(c.typography.copyWith(family: 'Merriweather', size: 24));
+    await c.setTypography(
+      c.typography.copyWith(family: 'Merriweather', size: 24),
+    );
     await c.goTo(2);
     expect(await c.close(), isTrue);
     c.dispose();
@@ -77,24 +81,28 @@ void main() {
 
     // Change the file behind the app's back: the next save must not clobber it.
     final folder = Directory(book.folderRef);
-    final file = folder
-        .listSync()
-        .whereType<File>()
-        .firstWhere((f) => f.path.toLowerCase().endsWith('.txt'));
+    final file = folder.listSync().whereType<File>().firstWhere(
+      (f) => f.path.toLowerCase().endsWith('.txt'),
+    );
     await Future<void>.delayed(const Duration(milliseconds: 20));
     await file.writeAsString('edited elsewhere');
 
     c.bufferFor(1)!.text.text = 'v2 from app';
     await c.flush();
     expect(c.hasUnsavedChanges, isTrue); // not silently dropped
-    expect(await file.readAsString(), 'edited elsewhere'); // not silently overwritten
+    expect(
+      await file.readAsString(),
+      'edited elsewhere',
+    ); // not silently overwritten
     expect(c.bufferFor(1)!.text.text, 'v2 from app');
     c.dispose();
   });
 
   test('ZIP export then re-import preserves text and page count', () async {
     final s = await TxtStorage.open(libraryRoot: root);
-    final book = await s.books.createBook(const NewBookRequest(title: 'Exported'));
+    final book = await s.books.createBook(
+      const NewBookRequest(title: 'Exported'),
+    );
     await s.pages.createPage(book.id);
     final page = (await s.pages.readPage(book.id, 2))!;
     await s.pages.writePage(page.copyWith(content: 'second page text'));
@@ -105,7 +113,10 @@ void main() {
 
     expect(imported.id, isNot(book.id));
     expect(imported.pageCount, 2);
-    expect((await s.pages.readPage(imported.id, 2))!.content, 'second page text');
+    expect(
+      (await s.pages.readPage(imported.id, 2))!.content,
+      'second page text',
+    );
     // The original is untouched.
     expect((await s.pages.readPage(book.id, 2))!.content, 'second page text');
   });

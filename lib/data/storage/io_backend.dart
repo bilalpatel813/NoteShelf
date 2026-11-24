@@ -16,15 +16,28 @@ class IoBackend implements StorageBackend {
   static StorageException mapError(Object e, String ref) {
     if (e is StorageException) return e;
     if (e is PathNotFoundException) {
-      return StorageException(StorageErrorKind.notFound, 'Not found', ref: ref, cause: e);
+      return StorageException(
+        StorageErrorKind.notFound,
+        'Not found',
+        ref: ref,
+        cause: e,
+      );
     }
     if (e is PathAccessException) {
-      return StorageException(StorageErrorKind.permissionDenied, 'Access denied',
-          ref: ref, cause: e);
+      return StorageException(
+        StorageErrorKind.permissionDenied,
+        'Access denied',
+        ref: ref,
+        cause: e,
+      );
     }
     if (e is PathExistsException) {
-      return StorageException(StorageErrorKind.alreadyExists, 'Already exists',
-          ref: ref, cause: e);
+      return StorageException(
+        StorageErrorKind.alreadyExists,
+        'Already exists',
+        ref: ref,
+        cause: e,
+      );
     }
     if (e is FileSystemException) {
       final code = e.osError?.errorCode;
@@ -33,36 +46,71 @@ class IoBackend implements StorageBackend {
           // 2/3 file or path not found, 5 access denied, 19 write protected,
           // 80/183 exists, 32/33 sharing/lock violation.
           if (code == 2 || code == 3) {
-            return StorageException(StorageErrorKind.notFound, 'Not found', ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.notFound,
+              'Not found',
+              ref: ref,
+              cause: e,
+            );
           }
           if (code == 5 || code == 19) {
-            return StorageException(StorageErrorKind.permissionDenied, 'Access denied',
-                ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.permissionDenied,
+              'Access denied',
+              ref: ref,
+              cause: e,
+            );
           }
           if (code == 80 || code == 183) {
-            return StorageException(StorageErrorKind.alreadyExists, 'Already exists',
-                ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.alreadyExists,
+              'Already exists',
+              ref: ref,
+              cause: e,
+            );
           }
           if (code == 32 || code == 33) {
-            return StorageException(StorageErrorKind.io,
-                'The file is in use by another program', ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.io,
+              'The file is in use by another program',
+              ref: ref,
+              cause: e,
+            );
           }
         } else {
           // 1 EPERM, 2 ENOENT, 13 EACCES, 17 EEXIST, 30 EROFS.
           if (code == 2) {
-            return StorageException(StorageErrorKind.notFound, 'Not found', ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.notFound,
+              'Not found',
+              ref: ref,
+              cause: e,
+            );
           }
           if (code == 1 || code == 13 || code == 30) {
-            return StorageException(StorageErrorKind.permissionDenied, 'Access denied',
-                ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.permissionDenied,
+              'Access denied',
+              ref: ref,
+              cause: e,
+            );
           }
           if (code == 17) {
-            return StorageException(StorageErrorKind.alreadyExists, 'Already exists',
-                ref: ref, cause: e);
+            return StorageException(
+              StorageErrorKind.alreadyExists,
+              'Already exists',
+              ref: ref,
+              cause: e,
+            );
           }
         }
       }
-      return StorageException(StorageErrorKind.io, e.message, ref: ref, cause: e);
+      return StorageException(
+        StorageErrorKind.io,
+        e.message,
+        ref: ref,
+        cause: e,
+      );
     }
     return StorageException(StorageErrorKind.io, '$e', ref: ref, cause: e);
   }
@@ -80,16 +128,24 @@ class IoBackend implements StorageBackend {
       _guard(folderRef, () async {
         final type = await FileSystemEntity.type(folderRef);
         if (type == FileSystemEntityType.notFound) {
-          throw StorageException(StorageErrorKind.notFound, 'Folder not found',
-              ref: folderRef);
+          throw StorageException(
+            StorageErrorKind.notFound,
+            'Folder not found',
+            ref: folderRef,
+          );
         }
         if (type != FileSystemEntityType.directory) {
-          throw StorageException(StorageErrorKind.invalidData, 'Not a folder',
-              ref: folderRef);
+          throw StorageException(
+            StorageErrorKind.invalidData,
+            'Not a folder',
+            ref: folderRef,
+          );
         }
         await Directory(folderRef).list().take(1).toList(); // read probe
         if (write) {
-          final probe = File(p.join(folderRef, '.bn-probe-${Random().nextInt(1 << 31)}'));
+          final probe = File(
+            p.join(folderRef, '.bn-probe-${Random().nextInt(1 << 31)}'),
+          );
           await probe.create(exclusive: true);
           await probe.delete();
         }
@@ -99,7 +155,8 @@ class IoBackend implements StorageBackend {
   Future<String> displayName(String folderRef) async => p.basename(folderRef);
 
   @override
-  Future<List<StorageEntry>> list(String folderRef) => _guard(folderRef, () async {
+  Future<List<StorageEntry>> list(String folderRef) =>
+      _guard(folderRef, () async {
         final out = <StorageEntry>[];
         await for (final ent in Directory(folderRef).list(followLinks: false)) {
           final FileStat st;
@@ -108,33 +165,38 @@ class IoBackend implements StorageBackend {
           } on FileSystemException {
             continue; // vanished or unreadable entry: skip it
           }
-          out.add(StorageEntry(
-            name: p.basename(ent.path),
-            ref: ent.path,
-            isDirectory: st.type == FileSystemEntityType.directory,
-            size: st.size,
-            modified: st.modified,
-          ));
+          out.add(
+            StorageEntry(
+              name: p.basename(ent.path),
+              ref: ent.path,
+              isDirectory: st.type == FileSystemEntityType.directory,
+              size: st.size,
+              modified: st.modified,
+            ),
+          );
         }
         return out;
       });
 
   @override
-  Future<StorageEntry?> stat(String folderRef, String name) => _guard(folderRef, () async {
-        validateEntryName(name);
-        final path = p.join(folderRef, name);
-        if (await FileSystemEntity.type(path) == FileSystemEntityType.notFound) {
-          return null;
-        }
-        final st = await FileStat.stat(path);
-        return StorageEntry(
-          name: name,
-          ref: path,
-          isDirectory: st.type == FileSystemEntityType.directory,
-          size: st.size,
-          modified: st.modified,
-        );
-      });
+  Future<StorageEntry?> stat(String folderRef, String name) => _guard(
+    folderRef,
+    () async {
+      validateEntryName(name);
+      final path = p.join(folderRef, name);
+      if (await FileSystemEntity.type(path) == FileSystemEntityType.notFound) {
+        return null;
+      }
+      final st = await FileStat.stat(path);
+      return StorageEntry(
+        name: name,
+        ref: path,
+        isDirectory: st.type == FileSystemEntityType.directory,
+        size: st.size,
+        modified: st.modified,
+      );
+    },
+  );
 
   @override
   Future<Uint8List> readBytes(String folderRef, String name) =>
@@ -149,55 +211,55 @@ class IoBackend implements StorageBackend {
     String name,
     Uint8List bytes, {
     bool overwrite = false,
-  }) =>
-      _guard(folderRef, () async {
-        validateEntryName(name);
-        final path = p.join(folderRef, name);
-        if (!overwrite) {
-          final f = File(path);
-          await f.create(exclusive: true); // PathExistsException if present
-          try {
-            await f.writeAsBytes(bytes, flush: true);
-          } catch (_) {
-            try {
-              await f.delete();
-            } catch (_) {}
-            rethrow;
-          }
-        } else {
-          // Write beside the target, then replace it: a crash never leaves a
-          // half-written page.
-          final tmp = File('$path.bntmp');
-          await tmp.writeAsBytes(bytes, flush: true);
-          try {
-            await _replace(tmp, path);
-          } catch (_) {
-            try {
-              await tmp.delete();
-            } catch (_) {}
-            rethrow;
-          }
-        }
-        final st = await FileStat.stat(path);
-        return StorageEntry(
-          name: name,
-          ref: path,
-          isDirectory: false,
-          size: st.size,
-          modified: st.modified,
-        );
-      });
+  }) => _guard(folderRef, () async {
+    validateEntryName(name);
+    final path = p.join(folderRef, name);
+    if (!overwrite) {
+      final f = File(path);
+      await f.create(exclusive: true); // PathExistsException if present
+      try {
+        await f.writeAsBytes(bytes, flush: true);
+      } catch (_) {
+        try {
+          await f.delete();
+        } catch (_) {}
+        rethrow;
+      }
+    } else {
+      // Write beside the target, then replace it: a crash never leaves a
+      // half-written page.
+      final tmp = File('$path.bntmp');
+      await tmp.writeAsBytes(bytes, flush: true);
+      try {
+        await _replace(tmp, path);
+      } catch (_) {
+        try {
+          await tmp.delete();
+        } catch (_) {}
+        rethrow;
+      }
+    }
+    final st = await FileStat.stat(path);
+    return StorageEntry(
+      name: name,
+      ref: path,
+      isDirectory: false,
+      size: st.size,
+      modified: st.modified,
+    );
+  });
 
   /// File.rename replaces an existing file. On Windows antivirus/indexers can
   /// hold the target briefly, so retry a few times.
   Future<void> _replace(File tmp, String path) async {
-    for (var attempt = 0;; attempt++) {
+    for (var attempt = 0; ; attempt++) {
       try {
         await tmp.rename(path);
         return;
       } on FileSystemException catch (e) {
         final code = e.osError?.errorCode;
-        final retryable = Platform.isWindows && (code == 5 || code == 32 || code == 33);
+        final retryable =
+            Platform.isWindows && (code == 5 || code == 32 || code == 33);
         if (!retryable || attempt >= 4) rethrow;
         await Future<void>.delayed(Duration(milliseconds: 60 * (attempt + 1)));
       }
@@ -205,7 +267,8 @@ class IoBackend implements StorageBackend {
   }
 
   @override
-  Future<void> delete(String folderRef, String name) => _guard(folderRef, () async {
+  Future<void> delete(String folderRef, String name) =>
+      _guard(folderRef, () async {
         validateEntryName(name);
         await File(p.join(folderRef, name)).delete();
       });
@@ -222,49 +285,72 @@ class IoBackend implements StorageBackend {
           // case-insensitive file system). File.rename would silently replace
           // a different file on POSIX.
           if (!await FileSystemEntity.identical(src, dst)) {
-            throw StorageException(StorageErrorKind.alreadyExists,
-                '"$newName" already exists', ref: dst);
+            throw StorageException(
+              StorageErrorKind.alreadyExists,
+              '"$newName" already exists',
+              ref: dst,
+            );
           }
         }
         await File(src).rename(dst);
       });
 
   @override
-  Future<String> createFolder(String parentRef, String name) =>
-      _guard(parentRef, () async {
-        validateEntryName(name);
-        final path = p.join(parentRef, name);
-        if (await FileSystemEntity.type(path) != FileSystemEntityType.notFound) {
-          throw StorageException(StorageErrorKind.alreadyExists,
-              '"$name" already exists', ref: path);
-        }
-        await Directory(path).create();
-        return path;
-      });
+  Future<String> createFolder(String parentRef, String name) => _guard(
+    parentRef,
+    () async {
+      validateEntryName(name);
+      final path = p.join(parentRef, name);
+      if (await FileSystemEntity.type(path) != FileSystemEntityType.notFound) {
+        throw StorageException(
+          StorageErrorKind.alreadyExists,
+          '"$name" already exists',
+          ref: path,
+        );
+      }
+      await Directory(path).create();
+      return path;
+    },
+  );
 
   @override
-  Future<void> moveFolder(String folderRef, String destParentRef, String destName) =>
-      _guard(folderRef, () async {
-        validateEntryName(destName);
-        final dst = p.join(destParentRef, destName);
-        if (await FileSystemEntity.type(dst) != FileSystemEntityType.notFound) {
-          throw StorageException(StorageErrorKind.alreadyExists,
-              '"$destName" already exists', ref: dst);
-        }
-        await Directory(folderRef).rename(dst);
-      });
+  Future<void> moveFolder(
+    String folderRef,
+    String destParentRef,
+    String destName,
+  ) => _guard(folderRef, () async {
+    validateEntryName(destName);
+    final dst = p.join(destParentRef, destName);
+    if (await FileSystemEntity.type(dst) != FileSystemEntityType.notFound) {
+      throw StorageException(
+        StorageErrorKind.alreadyExists,
+        '"$destName" already exists',
+        ref: dst,
+      );
+    }
+    await Directory(folderRef).rename(dst);
+  });
 
   @override
   Future<void> deleteFolder(String folderRef) => _guard(folderRef, () async {
-        await Directory(folderRef).delete(recursive: true);
-      });
+    await Directory(folderRef).delete(recursive: true);
+  });
 
   @override
   Future<Uint8List> readDocument(String docRef) =>
       _guard(docRef, () async => await File(docRef).readAsBytes());
 
   @override
-  Future<void> writeDocument(String docRef, Uint8List bytes, {bool overwrite = false}) async {
-    await writeBytes(p.dirname(docRef), p.basename(docRef), bytes, overwrite: overwrite);
+  Future<void> writeDocument(
+    String docRef,
+    Uint8List bytes, {
+    bool overwrite = false,
+  }) async {
+    await writeBytes(
+      p.dirname(docRef),
+      p.basename(docRef),
+      bytes,
+      overwrite: overwrite,
+    );
   }
 }

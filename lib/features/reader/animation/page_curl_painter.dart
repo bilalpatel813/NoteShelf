@@ -78,7 +78,10 @@ class CurlShadowPainter extends CustomPainter {
     // 1. Shadow of the flap on the page it lies over (hinge side only).
     canvas.save();
     canvas.clipPath(frame.hingeSidePath);
-    canvas.drawPath(frame.flapPath.shift(const Offset(3, 5)), paints.shadowBlur);
+    canvas.drawPath(
+      frame.flapPath.shift(const Offset(3, 5)),
+      paints.shadowBlur,
+    );
     canvas.restore();
 
     // 2. Soft shadow where the revealed page meets the lifted fold.
@@ -88,7 +91,10 @@ class CurlShadowPainter extends CustomPainter {
     canvas.translate(mid.dx, mid.dy);
     canvas.rotate(math.atan2(frame.normal.dy, frame.normal.dx));
     final h = frame.size.height * 2;
-    canvas.drawRect(Rect.fromLTRB(0, -h, paints.band * 0.7, h), paints.foldShadow);
+    canvas.drawRect(
+      Rect.fromLTRB(0, -h, paints.band * 0.7, h),
+      paints.foldShadow,
+    );
     canvas.restore();
 
     // 3. Two-page mode: the binding darkens while the page passes over it.
@@ -99,7 +105,11 @@ class CurlShadowPainter extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset(frame.hingeX - w, 0),
           Offset(frame.hingeX + w, 0),
-          [const Color(0x00000000), Color.fromRGBO(0, 0, 0, a), const Color(0x00000000)],
+          [
+            const Color(0x00000000),
+            Color.fromRGBO(0, 0, 0, a),
+            const Color(0x00000000),
+          ],
           const [0.0, 0.5, 1.0],
         );
       canvas.drawRect(
@@ -118,7 +128,11 @@ class CurlShadowPainter extends CustomPainter {
 }
 
 class CurlFlapPainter extends CustomPainter {
-  CurlFlapPainter({required this.frame, required this.paints, required this.paperBack});
+  CurlFlapPainter({
+    required this.frame,
+    required this.paints,
+    required this.paperBack,
+  });
 
   final CurlFrame frame;
   final CurlPaints paints;

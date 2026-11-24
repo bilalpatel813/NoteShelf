@@ -18,7 +18,8 @@ import 'package:flutter/widgets.dart';
 
 import '../../core/models/book.dart';
 import '../../data/storage/book_store.dart' show FontSettings, PageInfo;
-import '../../data/storage/storage_backend.dart' show StorageErrorKind, StorageException;
+import '../../data/storage/storage_backend.dart'
+    show StorageErrorKind, StorageException;
 import 'reader_models.dart';
 
 /// The slice of T2 the reader needs. [BookStoreReaderStorage] adapts T2's
@@ -39,8 +40,12 @@ enum SaveStatus { saved, dirty, saving, error }
 
 /// State of one page's text.
 class PageBuffer {
-  PageBuffer({required this.id, required this.number, required this.fileName, required this.heading})
-      : text = TextEditingController();
+  PageBuffer({
+    required this.id,
+    required this.number,
+    required this.fileName,
+    required this.heading,
+  }) : text = TextEditingController();
 
   final String id; // stable across renumbering
   int number; // 1-based, changes after insert/delete
@@ -70,10 +75,11 @@ class ReaderController extends ChangeNotifier {
     this.autosaveDelay = const Duration(milliseconds: 1500),
     ReaderLayout? initialLayout,
     this.mode = ReaderMode.edit, // edit by default
-  }) : layout = initialLayout ??
-            (book.preferredReadingMode == ReadingMode.twoPageSpread
-                ? ReaderLayout.unfolded
-                : ReaderLayout.folded);
+  }) : layout =
+           initialLayout ??
+           (book.preferredReadingMode == ReadingMode.twoPageSpread
+               ? ReaderLayout.unfolded
+               : ReaderLayout.folded);
 
   final Book book;
   final ReaderStorage storage;
@@ -132,12 +138,18 @@ class ReaderController extends ChangeNotifier {
       if (_pages.isEmpty) {
         // A book must have a page to write on.
         await storage.createPage(book.id);
-        _pages = [for (final i in await storage.pageInfos(book.id)) _bufferFromInfo(i)];
+        _pages = [
+          for (final i in await storage.pageInfos(book.id)) _bufferFromInfo(i),
+        ];
       }
       _current = SpreadMath.anchorFor(
-          book.lastOpenedPage.clamp(1, _pages.length).toInt(), layout);
+        book.lastOpenedPage.clamp(1, _pages.length).toInt(),
+        layout,
+      );
       try {
-        typography = TypographySettings.fromStored(await storage.getFontSettings(book.id));
+        typography = TypographySettings.fromStored(
+          await storage.getFontSettings(book.id),
+        );
       } catch (_) {
         typography = const TypographySettings(); // fall back; not fatal
       }
@@ -151,9 +163,12 @@ class ReaderController extends ChangeNotifier {
     _notify();
   }
 
-  PageBuffer _bufferFromInfo(PageInfo i) =>
-      PageBuffer(id: i.id, number: i.number, fileName: i.fileName, heading: i.heading)
-        ..text.addListener(_onTextChanged);
+  PageBuffer _bufferFromInfo(PageInfo i) => PageBuffer(
+    id: i.id,
+    number: i.number,
+    fileName: i.fileName,
+    heading: i.heading,
+  )..text.addListener(_onTextChanged);
 
   // Called for every keystroke in any page's controller.
   void _onTextChanged() {
@@ -177,7 +192,10 @@ class ReaderController extends ChangeNotifier {
     try {
       final p = await storage.readPage(book.id, b.number);
       if (p == null) {
-        b.error = const StorageException(StorageErrorKind.notFound, 'Page not found');
+        b.error = const StorageException(
+          StorageErrorKind.notFound,
+          'Page not found',
+        );
         return;
       }
       b.fileName = p.fileName;
@@ -208,7 +226,10 @@ class ReaderController extends ChangeNotifier {
 
   Future<void> goTo(int number) async {
     if (pageCount == 0) return;
-    final target = SpreadMath.anchorFor(number.clamp(1, pageCount).toInt(), layout);
+    final target = SpreadMath.anchorFor(
+      number.clamp(1, pageCount).toInt(),
+      layout,
+    );
     if (target == _current) return;
     _current = target;
     await _loadVisible();
@@ -217,7 +238,8 @@ class ReaderController extends ChangeNotifier {
   }
 
   Future<void> next() => goTo(SpreadMath.move(_current, 1, pageCount, layout));
-  Future<void> previous() => goTo(SpreadMath.move(_current, -1, pageCount, layout));
+  Future<void> previous() =>
+      goTo(SpreadMath.move(_current, -1, pageCount, layout));
 
   // ------------------------------------------------------------ mode/layout
 
@@ -271,7 +293,12 @@ class ReaderController extends ChangeNotifier {
     _notify();
     try {
       await storage.writePage(
-        BookPage(bookId: book.id, number: b.number, fileName: b.fileName, content: snapshot),
+        BookPage(
+          bookId: book.id,
+          number: b.number,
+          fileName: b.fileName,
+          content: snapshot,
+        ),
         force: force,
       );
       b.savedText = snapshot; // text typed during the write stays dirty
@@ -315,25 +342,29 @@ class ReaderController extends ChangeNotifier {
 
   /// Adds an empty page after the current page (or spread) and goes to it.
   Future<bool> addPage() => _structural(() async {
-        final at = (spread.right ?? spread.left) + 1;
-        final known = {for (final b in _pages) b.id};
-        await storage.createPage(book.id, atNumber: at);
-        final infos = await storage.pageInfos(book.id);
-        _rebuild(infos);
-        final created = _pages.firstWhere((b) => !known.contains(b.id),
-            orElse: () => _pages.last);
-        created.loaded = true; // brand new => empty, nothing to read
-        created.savedText = '';
-        _current = SpreadMath.anchorFor(created.number, layout);
-        await _loadVisible();
-        _scheduleOpened();
-      });
+    final at = (spread.right ?? spread.left) + 1;
+    final known = {for (final b in _pages) b.id};
+    await storage.createPage(book.id, atNumber: at);
+    final infos = await storage.pageInfos(book.id);
+    _rebuild(infos);
+    final created = _pages.firstWhere(
+      (b) => !known.contains(b.id),
+      orElse: () => _pages.last,
+    );
+    created.loaded = true; // brand new => empty, nothing to read
+    created.savedText = '';
+    _current = SpreadMath.anchorFor(created.number, layout);
+    await _loadVisible();
+    _scheduleOpened();
+  });
 
   /// Deletes page [number]. The last remaining page cannot be deleted.
   Future<bool> deletePage(int number) async {
     if (pageCount <= 1 || bufferFor(number) == null) {
       operationError = const StorageException(
-          StorageErrorKind.invalidData, 'A book needs at least one page. Clear its text instead.');
+        StorageErrorKind.invalidData,
+        'A book needs at least one page. Clear its text instead.',
+      );
       _notify();
       return false;
     }
@@ -344,7 +375,9 @@ class ReaderController extends ChangeNotifier {
       final infos = await storage.pageInfos(book.id);
       _rebuild(infos);
       _current = SpreadMath.anchorFor(
-          (number > pageCount ? pageCount : number).clamp(1, pageCount).toInt(), layout);
+        (number > pageCount ? pageCount : number).clamp(1, pageCount).toInt(),
+        layout,
+      );
       await _loadVisible();
       _scheduleOpened();
     });
@@ -365,8 +398,12 @@ class ReaderController extends ChangeNotifier {
   Future<bool> _structural(Future<void> Function() op) async {
     operationError = null;
     if (!await flush()) {
-      operationError = _firstPageError() ??
-          const StorageException(StorageErrorKind.io, 'Unsaved changes could not be saved.');
+      operationError =
+          _firstPageError() ??
+          const StorageException(
+            StorageErrorKind.io,
+            'Unsaved changes could not be saved.',
+          );
       _notify();
       return false;
     }
@@ -434,7 +471,10 @@ class ReaderController extends ChangeNotifier {
 
   void _scheduleOpened() {
     _openedTimer?.cancel();
-    _openedTimer = Timer(const Duration(milliseconds: 600), () => unawaited(_markOpened()));
+    _openedTimer = Timer(
+      const Duration(milliseconds: 600),
+      () => unawaited(_markOpened()),
+    );
   }
 
   Future<void> _markOpened() async {

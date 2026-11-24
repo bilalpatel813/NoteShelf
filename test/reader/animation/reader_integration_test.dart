@@ -1,6 +1,7 @@
 // T4 integration: the animators inside the real T3 ReaderScreen / BookReaderView.
 import 'package:booknotes/core/models/book.dart';
-import 'package:booknotes/data/storage/book_store.dart' show FontSettings, PageInfo;
+import 'package:booknotes/data/storage/book_store.dart'
+    show FontSettings, PageInfo;
 import 'package:booknotes/features/reader/animation/page_turn_animator.dart';
 import 'package:booknotes/features/reader/reader_controller.dart';
 import 'package:booknotes/features/reader/reader_screen.dart';
@@ -23,7 +24,12 @@ class _Storage implements ReaderStorage {
   @override
   Future<BookPage?> readPage(String bookId, int p) async => p < 1 || p > n
       ? null
-      : BookPage(bookId: bookId, number: p, fileName: _name(p), content: 'text $p');
+      : BookPage(
+          bookId: bookId,
+          number: p,
+          fileName: _name(p),
+          content: 'text $p',
+        );
   @override
   Future<BookPage> createPage(String bookId, {int? atNumber}) async =>
       BookPage(bookId: bookId, number: n + 1, fileName: _name(n + 1));
@@ -37,7 +43,8 @@ class _Storage implements ReaderStorage {
   @override
   Future<FontSettings> getFontSettings(String bookId) async => fonts;
   @override
-  Future<void> setFontSettings(String bookId, FontSettings f) async => fonts = f;
+  Future<void> setFontSettings(String bookId, FontSettings f) async =>
+      fonts = f;
   @override
   Future<void> markOpened(String bookId, {int? page}) async {}
 }
@@ -79,26 +86,35 @@ Future<void> _viewMode(WidgetTester t) async {
 
 /// Pumps until the reader has started turning (the controller answers async).
 Future<void> _pumpUntilTurning(WidgetTester t) async {
-  for (var i = 0; i < 10 && find.byKey(pageTurnFrameKey).evaluate().isEmpty; i++) {
+  for (
+    var i = 0;
+    i < 10 && find.byKey(pageTurnFrameKey).evaluate().isEmpty;
+    i++
+  ) {
     await t.pump(const Duration(milliseconds: 20));
   }
 }
 
 void main() {
-  testWidgets('curl is the default; Next turns the page and the reader lands on page 2', (t) async {
-    expect(kDefaultPageTurnStyle, PageTurnStyle.curl);
-    await _open(t);
-    await _viewMode(t);
-    await t.tap(find.byTooltip('Next (Alt+Right)'));
-    await _pumpUntilTurning(t);
-    expect(find.byKey(pageTurnFrameKey), findsOneWidget);
-    await t.pumpAndSettle();
-    expect(find.byKey(pageTurnFrameKey), findsNothing);
-    expect(find.text('Page 2 of 3'), findsOneWidget);
-    expect(find.text('text 2'), findsOneWidget);
-  });
+  testWidgets(
+    'curl is the default; Next turns the page and the reader lands on page 2',
+    (t) async {
+      expect(kDefaultPageTurnStyle, PageTurnStyle.curl);
+      await _open(t);
+      await _viewMode(t);
+      await t.tap(find.byTooltip('Next (Alt+Right)'));
+      await _pumpUntilTurning(t);
+      expect(find.byKey(pageTurnFrameKey), findsOneWidget);
+      await t.pumpAndSettle();
+      expect(find.byKey(pageTurnFrameKey), findsNothing);
+      expect(find.text('Page 2 of 3'), findsOneWidget);
+      expect(find.text('text 2'), findsOneWidget);
+    },
+  );
 
-  testWidgets('View mode: swipe left/right navigates through the animator', (t) async {
+  testWidgets('View mode: swipe left/right navigates through the animator', (
+    t,
+  ) async {
     await _open(t);
     await _viewMode(t);
     await t.fling(find.text('text 1'), const Offset(-400, 0), 1500);
@@ -109,59 +125,71 @@ void main() {
     expect(find.text('Page 1 of 3'), findsOneWidget);
   });
 
-  testWidgets('Edit mode: swipes do not turn the page and the editor keeps working', (t) async {
-    await _open(t);
-    expect(find.byType(TextField), findsOneWidget);
-    await t.fling(find.byType(TextField), const Offset(-400, 0), 1500);
-    await t.pumpAndSettle();
-    expect(find.text('Page 1 of 3'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
-    await t.enterText(find.byType(TextField), 'still typing');
-    await t.pump();
-    expect(find.text('still typing'), findsOneWidget);
-  });
+  testWidgets(
+    'Edit mode: swipes do not turn the page and the editor keeps working',
+    (t) async {
+      await _open(t);
+      expect(find.byType(TextField), findsOneWidget);
+      await t.fling(find.byType(TextField), const Offset(-400, 0), 1500);
+      await t.pumpAndSettle();
+      expect(find.text('Page 1 of 3'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      await t.enterText(find.byType(TextField), 'still typing');
+      await t.pump();
+      expect(find.text('still typing'), findsOneWidget);
+    },
+  );
 
-  testWidgets('typing then turning with the curl keeps the text (T3 behaviour preserved)', (
+  testWidgets(
+    'typing then turning with the curl keeps the text (T3 behaviour preserved)',
+    (t) async {
+      await _open(t);
+      await t.enterText(find.byType(TextField), 'hello world');
+      await t.pump();
+      await t.tap(find.byTooltip('Next (Alt+Right)'));
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('Previous (Alt+Left)'));
+      await t.pumpAndSettle();
+      expect(find.text('hello world'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'unfolded: next turns the right page and ends on the odd final page',
+    (t) async {
+      await _open(t, mode: ReadingMode.twoPageSpread);
+      await _viewMode(t);
+      expect(find.text('Pages 1\u20132 of 3'), findsOneWidget);
+      await t.tap(find.byTooltip('Next (Alt+Right)'));
+      await _pumpUntilTurning(t);
+      expect(find.byKey(pageTurnFrameKey), findsOneWidget);
+      await t.pumpAndSettle();
+      expect(find.text('Page 3 of 3'), findsOneWidget);
+      expect(find.text('text 3'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'the Page turn menu switches to Slide, which leaves the engine out',
+    (t) async {
+      await _open(t);
+      await _viewMode(t);
+      await t.tap(find.byTooltip('Page turn style'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Slide'));
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('Next (Alt+Right)'));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 100));
+      expect(find.byKey(pageTurnFrameKey), findsNothing);
+      await t.pumpAndSettle();
+      expect(find.text('Page 2 of 3'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a fixed animator passed to ReaderScreen hides the style menu', (
     t,
   ) async {
-    await _open(t);
-    await t.enterText(find.byType(TextField), 'hello world');
-    await t.pump();
-    await t.tap(find.byTooltip('Next (Alt+Right)'));
-    await t.pumpAndSettle();
-    await t.tap(find.byTooltip('Previous (Alt+Left)'));
-    await t.pumpAndSettle();
-    expect(find.text('hello world'), findsOneWidget);
-  });
-
-  testWidgets('unfolded: next turns the right page and ends on the odd final page', (t) async {
-    await _open(t, mode: ReadingMode.twoPageSpread);
-    await _viewMode(t);
-    expect(find.text('Pages 1\u20132 of 3'), findsOneWidget);
-    await t.tap(find.byTooltip('Next (Alt+Right)'));
-    await _pumpUntilTurning(t);
-    expect(find.byKey(pageTurnFrameKey), findsOneWidget);
-    await t.pumpAndSettle();
-    expect(find.text('Page 3 of 3'), findsOneWidget);
-    expect(find.text('text 3'), findsOneWidget);
-  });
-
-  testWidgets('the Page turn menu switches to Slide, which leaves the engine out', (t) async {
-    await _open(t);
-    await _viewMode(t);
-    await t.tap(find.byTooltip('Page turn style'));
-    await t.pumpAndSettle();
-    await t.tap(find.text('Slide'));
-    await t.pumpAndSettle();
-    await t.tap(find.byTooltip('Next (Alt+Right)'));
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 100));
-    expect(find.byKey(pageTurnFrameKey), findsNothing);
-    await t.pumpAndSettle();
-    expect(find.text('Page 2 of 3'), findsOneWidget);
-  });
-
-  testWidgets('a fixed animator passed to ReaderScreen hides the style menu', (t) async {
     await _open(t, animator: const SlidePageTurnAnimator());
     expect(find.byTooltip('Page turn style'), findsNothing);
   });

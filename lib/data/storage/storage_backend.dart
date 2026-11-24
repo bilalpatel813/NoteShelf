@@ -77,7 +77,10 @@ void validateEntryName(String name) {
       name.contains('/') ||
       name.contains('\\') ||
       name.contains('\u0000')) {
-    throw StorageException(StorageErrorKind.invalidName, 'Invalid file name: "$name"');
+    throw StorageException(
+      StorageErrorKind.invalidName,
+      'Invalid file name: "$name"',
+    );
   }
 }
 
@@ -115,7 +118,11 @@ abstract interface class StorageBackend {
   Future<String> createFolder(String parentRef, String name);
 
   /// Renames/moves a folder (used for the internal Trash). SAF: unsupported.
-  Future<void> moveFolder(String folderRef, String destParentRef, String destName);
+  Future<void> moveFolder(
+    String folderRef,
+    String destParentRef,
+    String destName,
+  );
 
   /// Recursively deletes a folder. Only BookStore calls it, and only on its own
   /// Trash and on half-finished imports it created itself.
@@ -124,5 +131,9 @@ abstract interface class StorageBackend {
   /// Whole-file access by direct ref (a file path or a SAF document URI), for
   /// ZIP import/export and cover images chosen via pickers.
   Future<Uint8List> readDocument(String docRef);
-  Future<void> writeDocument(String docRef, Uint8List bytes, {bool overwrite = false});
+  Future<void> writeDocument(
+    String docRef,
+    Uint8List bytes, {
+    bool overwrite = false,
+  });
 }

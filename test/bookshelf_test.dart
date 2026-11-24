@@ -9,17 +9,21 @@ import 'support/demo_bookshelf_actions.dart';
 import 'support/in_memory_book_repository.dart';
 
 Future<void> _launch(WidgetTester tester) async {
-  await tester.pumpWidget(ProviderScope(
-    overrides: [
-      bookRepositoryProvider.overrideWith((ref) {
-        final repo = InMemoryBookRepository.withSamples();
-        ref.onDispose(repo.dispose);
-        return repo;
-      }),
-      bookshelfActionsProvider.overrideWith((ref) => DemoBookshelfActions(ref)),
-    ],
-    child: const BookNotesApp(),
-  ));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        bookRepositoryProvider.overrideWith((ref) {
+          final repo = InMemoryBookRepository.withSamples();
+          ref.onDispose(repo.dispose);
+          return repo;
+        }),
+        bookshelfActionsProvider.overrideWith(
+          (ref) => DemoBookshelfActions(ref),
+        ),
+      ],
+      child: const BookNotesApp(),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
@@ -38,7 +42,9 @@ void main() {
     expect(find.text('No books match your search'), findsOneWidget);
   });
 
-  testWidgets('long-press opens context menu and selects a book (Android)', (tester) async {
+  testWidgets('long-press opens context menu and selects a book (Android)', (
+    tester,
+  ) async {
     await _launch(tester);
     await tester.longPress(find.text('Astronomy Field Notes').first);
     await tester.pumpAndSettle();
@@ -47,7 +53,9 @@ void main() {
     expect(find.text('1 selected'), findsOneWidget);
   });
 
-  testWidgets('tap opens a book via the integration point (Android)', (tester) async {
+  testWidgets('tap opens a book via the integration point (Android)', (
+    tester,
+  ) async {
     await _launch(tester);
     await tester.tap(find.text('Astronomy Field Notes').first);
     await tester.pump();

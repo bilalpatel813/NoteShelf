@@ -31,20 +31,24 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   bool get _desktop => switch (Theme.of(context).platform) {
-        TargetPlatform.windows || TargetPlatform.linux || TargetPlatform.macos => true,
-        _ => false,
-      };
+    TargetPlatform.windows ||
+    TargetPlatform.linux ||
+    TargetPlatform.macos => true,
+    _ => false,
+  };
 
   // ----------------------------------------------------------------- actions
 
-  void _openBook(Book book) => ref.read(bookshelfActionsProvider).openBook(context, book);
+  void _openBook(Book book) =>
+      ref.read(bookshelfActionsProvider).openBook(context, book);
 
   void _onCardTap(Book book) {
     final ctrl = ref.read(shelfControllerProvider.notifier);
     final selecting = ref.read(shelfControllerProvider).selecting;
     if (_desktop) {
       final kb = HardwareKeyboard.instance;
-      final multi = kb.isControlPressed || kb.isMetaPressed || kb.isShiftPressed;
+      final multi =
+          kb.isControlPressed || kb.isMetaPressed || kb.isShiftPressed;
       multi ? ctrl.toggleSelect(book.id) : ctrl.selectOnly(book.id);
     } else if (selecting) {
       ctrl.toggleSelect(book.id);
@@ -54,13 +58,16 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _showContextMenu(Book book, Offset position) async {
-    final selected = ref.read(shelfControllerProvider).selectedIds.contains(book.id);
+    final selected = ref
+        .read(shelfControllerProvider)
+        .selectedIds
+        .contains(book.id);
     final entries = <(_BookAction, IconData, String)>[
       (_BookAction.open, Icons.menu_book_outlined, 'Open'),
       (
         _BookAction.select,
         selected ? Icons.check_box_outline_blank : Icons.check_box_outlined,
-        selected ? 'Deselect' : 'Select'
+        selected ? 'Deselect' : 'Select',
       ),
       (_BookAction.info, Icons.info_outline, 'Book info'),
       (_BookAction.rename, Icons.drive_file_rename_outline, 'Rename'),
@@ -70,15 +77,25 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
     _BookAction? choice;
     if (_desktop) {
-      final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+      final overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox;
       choice = await showMenu<_BookAction>(
         context: context,
-        position: RelativeRect.fromRect(position & const Size(1, 1), Offset.zero & overlay.size),
+        position: RelativeRect.fromRect(
+          position & const Size(1, 1),
+          Offset.zero & overlay.size,
+        ),
         items: [
           for (final e in entries)
             PopupMenuItem(
               value: e.$1,
-              child: Row(children: [Icon(e.$2, size: 20), const SizedBox(width: 12), Text(e.$3)]),
+              child: Row(
+                children: [
+                  Icon(e.$2, size: 20),
+                  const SizedBox(width: 12),
+                  Text(e.$3),
+                ],
+              ),
             ),
         ],
       );
@@ -87,18 +104,24 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         context: context,
         showDragHandle: true,
         builder: (ctx) => SafeArea(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ListTile(
-              title: Text(book.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text(book.subject),
-            ),
-            for (final e in entries)
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               ListTile(
-                leading: Icon(e.$2),
-                title: Text(e.$3),
-                onTap: () => Navigator.pop(ctx, e.$1),
+                title: Text(
+                  book.title,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(book.subject),
               ),
-          ]),
+              for (final e in entries)
+                ListTile(
+                  leading: Icon(e.$2),
+                  title: Text(e.$3),
+                  onTap: () => Navigator.pop(ctx, e.$1),
+                ),
+            ],
+          ),
         ),
       );
     }
@@ -134,15 +157,24 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
           onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Rename')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, c.text),
+            child: const Text('Rename'),
+          ),
         ],
       ),
     );
     c.dispose();
     final t = name?.trim();
     if (t == null || t.isEmpty || t == book.title || !mounted) return;
-    await _storageOp(() => ref.read(bookRepositoryProvider).updateBook(book.copyWith(title: t)));
+    await _storageOp(
+      () =>
+          ref.read(bookRepositoryProvider).updateBook(book.copyWith(title: t)),
+    );
   }
 
   /// Runs a storage call and shows a readable dialog instead of crashing.
@@ -156,7 +188,12 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         builder: (ctx) => AlertDialog(
           title: const Text('Could not complete that'),
           content: Text(describeStorageError(e)),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
         ),
       );
     }
@@ -164,40 +201,62 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
   void _showInfo(Book book) {
     Widget row(String k, String v) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            SizedBox(width: 110, child: Text(k, style: const TextStyle(fontWeight: FontWeight.w600))),
-            Expanded(child: Text(v)),
-          ]),
-        );
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(k, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ),
+          Expanded(child: Text(v)),
+        ],
+      ),
+    );
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(book.title),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          row('Subject', book.subject),
-          row('Pages', '${book.pageCount}'),
-          row('Last page', '${book.lastOpenedPage}'),
-          row('Last opened', formatLastOpened(book.lastOpenedAt)),
-          row('Reading mode', book.preferredReadingMode.name),
-          row('Folder', book.folderRef),
-          row('ID', book.id),
-        ]),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            row('Subject', book.subject),
+            row('Pages', '${book.pageCount}'),
+            row('Last page', '${book.lastOpenedPage}'),
+            row('Last opened', formatLastOpened(book.lastOpenedAt)),
+            row('Reading mode', book.preferredReadingMode.name),
+            row('Folder', book.folderRef),
+            row('ID', book.id),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _confirmDelete(List<Book> books) async {
-    final label = books.length == 1 ? '"${books.first.title}"' : '${books.length} books';
+    final label = books.length == 1
+        ? '"${books.first.title}"'
+        : '${books.length} books';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete $label?'),
         content: const Text('This removes the book from your shelf.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -224,7 +283,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
     final PreferredSizeWidget appBar;
     if (shelf.selecting) {
-      final selectedBooks = visible.where((b) => shelf.selectedIds.contains(b.id)).toList();
+      final selectedBooks = visible
+          .where((b) => shelf.selectedIds.contains(b.id))
+          .toList();
       appBar = AppBar(
         leading: IconButton(
           tooltip: 'Clear selection',
@@ -247,20 +308,26 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
           IconButton(
             tooltip: 'Delete',
             icon: const Icon(Icons.delete_outline),
-            onPressed: selectedBooks.isEmpty ? null : () => _confirmDelete(selectedBooks),
+            onPressed: selectedBooks.isEmpty
+                ? null
+                : () => _confirmDelete(selectedBooks),
           ),
         ],
       );
     } else {
       final mode = ref.watch(themeModeProvider);
-      final isDark = mode == ThemeMode.dark ||
-          (mode == ThemeMode.system && MediaQuery.platformBrightnessOf(context) == Brightness.dark);
+      final isDark =
+          mode == ThemeMode.dark ||
+          (mode == ThemeMode.system &&
+              MediaQuery.platformBrightnessOf(context) == Brightness.dark);
       appBar = AppBar(
-        title: const Row(children: [
-          Icon(Icons.auto_stories),
-          SizedBox(width: 10),
-          Text('BookNotes'),
-        ]),
+        title: const Row(
+          children: [
+            Icon(Icons.auto_stories),
+            SizedBox(width: 10),
+            Text('BookNotes'),
+          ],
+        ),
         actions: [
           if (wide) ...[
             FilledButton.icon(
@@ -270,7 +337,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(foregroundColor: palette.plaqueText),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: palette.plaqueText,
+              ),
               onPressed: () => actions.importFolder(context),
               icon: const Icon(Icons.folder_open),
               label: const Text('Import Folder'),
@@ -303,7 +372,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     }
 
     return CallbackShortcuts(
-      bindings: {const SingleActivator(LogicalKeyboardKey.escape): ctrl.clearSelection},
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): ctrl.clearSelection,
+      },
       child: Focus(
         autofocus: true,
         child: Scaffold(
@@ -323,18 +394,22 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
                 colors: [palette.wallTop, palette.wallBottom],
               ),
             ),
-            child: Column(children: [
-              _toolbar(shelf, ctrl, wide),
-              Expanded(
-                child: books.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Could not load your library: $e')),
-                  data: (list) => list.isEmpty
-                      ? _emptyState(shelf.query.isNotEmpty, actions)
-                      : _shelf(list, shelf, ctrl, wide),
+            child: Column(
+              children: [
+                _toolbar(shelf, ctrl, wide),
+                Expanded(
+                  child: books.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) =>
+                        Center(child: Text('Could not load your library: $e')),
+                    data: (list) => list.isEmpty
+                        ? _emptyState(shelf.query.isNotEmpty, actions)
+                        : _shelf(list, shelf, ctrl, wide),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
         ),
       ),
@@ -345,63 +420,81 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     final onWall = Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: EdgeInsets.fromLTRB(wide ? 40 : 16, 14, wide ? 40 : 16, 6),
-      child: Row(children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: TextField(
-                controller: _search,
-                onChanged: ctrl.setQuery,
-                decoration: InputDecoration(
-                  hintText: 'Search title or subject',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: shelf.query.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Clear search',
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _search.clear();
-                            ctrl.setQuery('');
-                          },
-                        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: TextField(
+                  controller: _search,
+                  onChanged: ctrl.setQuery,
+                  decoration: InputDecoration(
+                    hintText: 'Search title or subject',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: shelf.query.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Clear search',
+                            icon: const Icon(Icons.close),
+                            onPressed: () {
+                              _search.clear();
+                              ctrl.setQuery('');
+                            },
+                          ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
-        PopupMenuButton<BookSort>(
-          tooltip: 'Sort books',
-          onSelected: ctrl.setSort,
-          itemBuilder: (_) => [
-            for (final s in BookSort.values)
-              PopupMenuItem(
-                value: s,
-                child: Row(children: [
-                  Text(s.label),
-                  const Spacer(),
-                  if (s == shelf.sort)
-                    Icon(shelf.ascending ? Icons.arrow_upward : Icons.arrow_downward, size: 18),
-                ]),
+          const SizedBox(width: 8),
+          PopupMenuButton<BookSort>(
+            tooltip: 'Sort books',
+            onSelected: ctrl.setSort,
+            itemBuilder: (_) => [
+              for (final s in BookSort.values)
+                PopupMenuItem(
+                  value: s,
+                  child: Row(
+                    children: [
+                      Text(s.label),
+                      const Spacer(),
+                      if (s == shelf.sort)
+                        Icon(
+                          shelf.ascending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          size: 18,
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.sort, color: onWall),
+                  if (wide) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      'Sort: ${shelf.sort.label}',
+                      style: TextStyle(color: onWall),
+                    ),
+                  ],
+                  Icon(
+                    shelf.ascending ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 16,
+                    color: onWall,
+                  ),
+                ],
               ),
-          ],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.sort, color: onWall),
-              if (wide) ...[
-                const SizedBox(width: 6),
-                Text('Sort: ${shelf.sort.label}', style: TextStyle(color: onWall)),
-              ],
-              Icon(shelf.ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                  size: 16, color: onWall),
-            ]),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -409,73 +502,85 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(searching ? Icons.search_off : Icons.auto_stories, size: 56),
-          const SizedBox(height: 12),
-          Text(
-            searching ? 'No books match your search' : 'Your shelf is empty',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 6),
-          Text(searching
-              ? 'Try a different title or subject.'
-              : 'Create a new book or import a folder to get started.'),
-          if (!searching) ...[
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => actions.newBook(context),
-              icon: const Icon(Icons.add),
-              label: const Text('New Book'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(searching ? Icons.search_off : Icons.auto_stories, size: 56),
+            const SizedBox(height: 12),
+            Text(
+              searching ? 'No books match your search' : 'Your shelf is empty',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
+            const SizedBox(height: 6),
+            Text(
+              searching
+                  ? 'Try a different title or subject.'
+                  : 'Create a new book or import a folder to get started.',
+            ),
+            if (!searching) ...[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () => actions.newBook(context),
+                icon: const Icon(Icons.add),
+                label: const Text('New Book'),
+              ),
+            ],
           ],
-        ]),
+        ),
       ),
     );
   }
 
-  Widget _shelf(List<Book> books, ShelfState shelf, ShelfController ctrl, bool wide) {
+  Widget _shelf(
+    List<Book> books,
+    ShelfState shelf,
+    ShelfController ctrl,
+    bool wide,
+  ) {
     final desktop = _desktop;
-    return LayoutBuilder(builder: (context, box) {
-      const gap = 20.0;
-      final pad = wide ? 40.0 : 16.0;
-      final target = box.maxWidth >= 1200 ? 180.0 : (wide ? 165.0 : 130.0);
-      final usable = box.maxWidth - pad * 2;
-      final cols = math.max(1, ((usable + gap) / (target + gap)).floor());
-      final cardW = (usable - gap * (cols - 1)) / cols;
-      final rowCount = (books.length / cols).ceil();
+    return LayoutBuilder(
+      builder: (context, box) {
+        const gap = 20.0;
+        final pad = wide ? 40.0 : 16.0;
+        final target = box.maxWidth >= 1200 ? 180.0 : (wide ? 165.0 : 130.0);
+        final usable = box.maxWidth - pad * 2;
+        final cols = math.max(1, ((usable + gap) / (target + gap)).floor());
+        final cardW = (usable - gap * (cols - 1)) / cols;
+        final rowCount = (books.length / cols).ceil();
 
-      return GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: ctrl.clearSelection,
-        child: ListView.builder(
-          padding: const EdgeInsets.only(top: 12, bottom: 100),
-          itemCount: rowCount,
-          itemBuilder: (context, row) {
-            final slice = books.skip(row * cols).take(cols).toList();
-            return _ShelfRow(
-              cardWidth: cardW,
-              cols: cols,
-              hPad: pad,
-              gap: gap,
-              children: [
-                for (final b in slice)
-                  BookCard(
-                    key: ValueKey(b.id),
-                    book: b,
-                    width: cardW,
-                    desktop: desktop,
-                    selected: shelf.selectedIds.contains(b.id),
-                    onTap: () => _onCardTap(b),
-                    onDoubleTap: () => _openBook(b),
-                    onOpen: () => _openBook(b),
-                    onContextMenu: (pos) => _showContextMenu(b, pos),
-                  ),
-              ],
-            );
-          },
-        ),
-      );
-    });
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: ctrl.clearSelection,
+          child: ListView.builder(
+            padding: const EdgeInsets.only(top: 12, bottom: 100),
+            itemCount: rowCount,
+            itemBuilder: (context, row) {
+              final slice = books.skip(row * cols).take(cols).toList();
+              return _ShelfRow(
+                cardWidth: cardW,
+                cols: cols,
+                hPad: pad,
+                gap: gap,
+                children: [
+                  for (final b in slice)
+                    BookCard(
+                      key: ValueKey(b.id),
+                      book: b,
+                      width: cardW,
+                      desktop: desktop,
+                      selected: shelf.selectedIds.contains(b.id),
+                      onTap: () => _onCardTap(b),
+                      onDoubleTap: () => _openBook(b),
+                      onOpen: () => _openBook(b),
+                      onContextMenu: (pos) => _showContextMenu(b, pos),
+                    ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -499,41 +604,54 @@ class _ShelfRow extends StatelessWidget {
     final coverH = cardWidth * 1.5;
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
-      child: Stack(clipBehavior: Clip.none, children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: coverH - 6,
-          height: BookCard.labelHeight + 14,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [palette.woodLight, palette.woodDark],
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: coverH - 6,
+            height: BookCard.labelHeight + 14,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [palette.woodLight, palette.woodDark],
+                ),
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    width: 2,
+                  ),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black38,
+                    blurRadius: 12,
+                    offset: Offset(0, 6),
+                  ),
+                ],
               ),
-              border: Border(
-                top: BorderSide(color: Colors.white.withValues(alpha: 0.22), width: 2),
-              ),
-              boxShadow: const [
-                BoxShadow(color: Colors.black38, blurRadius: 12, offset: Offset(0, 6)),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: hPad),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < cols; i++) ...[
+                  if (i > 0) SizedBox(width: gap),
+                  SizedBox(
+                    width: cardWidth,
+                    child: i < children.length ? children[i] : null,
+                  ),
+                ],
               ],
             ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: hPad),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            for (var i = 0; i < cols; i++) ...[
-              if (i > 0) SizedBox(width: gap),
-              SizedBox(
-                width: cardWidth,
-                child: i < children.length ? children[i] : null,
-              ),
-            ],
-          ]),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }

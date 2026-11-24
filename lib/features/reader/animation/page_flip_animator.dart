@@ -32,7 +32,9 @@ Widget _shaded(Widget child, double alpha) => Stack(
   fit: StackFit.expand,
   children: [
     child,
-    IgnorePointer(child: ColoredBox(color: Color.fromRGBO(0, 0, 0, alpha.clamp(0.0, 1.0)))),
+    IgnorePointer(
+      child: ColoredBox(color: Color.fromRGBO(0, 0, 0, alpha.clamp(0.0, 1.0))),
+    ),
   ],
 );
 
@@ -47,8 +49,16 @@ Widget buildFlipFrame({
   required Widget incoming,
 }) {
   final t = progress.clamp(0.0, 1.0).toDouble();
-  final hinge = PageCurlGeometry.hingeFor(size, unfolded: unfolded, direction: direction);
-  final turning = PageCurlGeometry.regionFor(size, unfolded: unfolded, direction: direction);
+  final hinge = PageCurlGeometry.hingeFor(
+    size,
+    unfolded: unfolded,
+    direction: direction,
+  );
+  final turning = PageCurlGeometry.regionFor(
+    size,
+    unfolded: unfolded,
+    direction: direction,
+  );
   final still = PageCurlGeometry.stationaryRegionFor(
     size,
     unfolded: unfolded,
@@ -73,7 +83,10 @@ Widget buildFlipFrame({
       Positioned.fill(
         child: Transform(
           transform: _scaleAbout(hinge, width),
-          child: ClipRect(clipper: RectClipper(turning), child: _shaded(outgoing, 0.30 * (1 - c))),
+          child: ClipRect(
+            clipper: RectClipper(turning),
+            child: _shaded(outgoing, 0.30 * (1 - c)),
+          ),
         ),
       ),
     );
@@ -97,5 +110,9 @@ Widget buildFlipFrame({
     children.add(const SizedBox.shrink());
   }
 
-  return Stack(fit: StackFit.expand, clipBehavior: Clip.hardEdge, children: children);
+  return Stack(
+    fit: StackFit.expand,
+    clipBehavior: Clip.hardEdge,
+    children: children,
+  );
 }

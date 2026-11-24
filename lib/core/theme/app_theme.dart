@@ -43,15 +43,14 @@ class ShelfPalette extends ThemeExtension<ShelfPalette> {
     Color? woodDark,
     Color? plaqueText,
     Color? accent,
-  }) =>
-      ShelfPalette(
-        wallTop: wallTop ?? this.wallTop,
-        wallBottom: wallBottom ?? this.wallBottom,
-        woodLight: woodLight ?? this.woodLight,
-        woodDark: woodDark ?? this.woodDark,
-        plaqueText: plaqueText ?? this.plaqueText,
-        accent: accent ?? this.accent,
-      );
+  }) => ShelfPalette(
+    wallTop: wallTop ?? this.wallTop,
+    wallBottom: wallBottom ?? this.wallBottom,
+    woodLight: woodLight ?? this.woodLight,
+    woodDark: woodDark ?? this.woodDark,
+    plaqueText: plaqueText ?? this.plaqueText,
+    accent: accent ?? this.accent,
+  );
 
   @override
   ShelfPalette lerp(ThemeExtension<ShelfPalette>? other, double t) {
@@ -71,7 +70,12 @@ class AppTheme {
   AppTheme._();
 
   /// Serif stack used for covers and headings (falls back per platform).
-  static const serifFallback = ['Georgia', 'Cambria', 'Times New Roman', 'serif'];
+  static const serifFallback = [
+    'Georgia',
+    'Cambria',
+    'Times New Roman',
+    'serif',
+  ];
 
   static ThemeData light() => _build(Brightness.light, ShelfPalette.light);
   static ThemeData dark() => _build(Brightness.dark, ShelfPalette.dark);

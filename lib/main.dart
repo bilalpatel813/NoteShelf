@@ -11,16 +11,19 @@ import "features/reader/reader_screen.dart";
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = await TxtStorage.open(); // T2: TXT/folder-backed storage
-  runApp(ProviderScope(
-    overrides: [
-      bookRepositoryProvider.overrideWithValue(storage.books),
-      pageRepositoryProvider.overrideWithValue(storage.pages),
-      // New Book + Import Folder from T2; openBook from T3 (reader).
-      bookshelfActionsProvider
-          .overrideWith((ref) => T2Actions(ref, openBook: openReader(ref))),
-    ],
-    child: const BookNotesApp(),
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [
+        bookRepositoryProvider.overrideWithValue(storage.books),
+        pageRepositoryProvider.overrideWithValue(storage.pages),
+        // New Book + Import Folder from T2; openBook from T3 (reader).
+        bookshelfActionsProvider.overrideWith(
+          (ref) => T2Actions(ref, openBook: openReader(ref)),
+        ),
+      ],
+      child: const BookNotesApp(),
+    ),
+  );
 }
 
 class BookNotesApp extends ConsumerWidget {

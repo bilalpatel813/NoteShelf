@@ -81,7 +81,12 @@ enum _Phase { idle, dragging, committing, running }
 enum _Mode { curl, flip, fade }
 
 class PageTurnEngine extends StatefulWidget {
-  const PageTurnEngine({super.key, required this.scope, required this.kind, this.tilt = 0.10});
+  const PageTurnEngine({
+    super.key,
+    required this.scope,
+    required this.kind,
+    this.tilt = 0.10,
+  });
 
   final PageTurnScope scope;
   final PageTurnKind kind;
@@ -91,7 +96,8 @@ class PageTurnEngine extends StatefulWidget {
   State<PageTurnEngine> createState() => _PageTurnEngineState();
 }
 
-class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProviderStateMixin {
+class _PageTurnEngineState extends State<PageTurnEngine>
+    with SingleTickerProviderStateMixin {
   // Progress of the turn, 0..1. While dragging it follows the finger.
   late final AnimationController _c = AnimationController(vsync: this);
   final CurlPaints _paints = CurlPaints();
@@ -179,16 +185,22 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
     return widget.scope.duration * f;
   }
 
-  Duration _scaled(double fraction) => _fullDuration * fraction.clamp(0.0, 1.0).toDouble();
+  Duration _scaled(double fraction) =>
+      _fullDuration * fraction.clamp(0.0, 1.0).toDouble();
 
-  Widget _retain(int anchor) =>
-      RepaintBoundary(child: widget.scope.buildSpread(context, anchor, interactive: false));
+  Widget _retain(int anchor) => RepaintBoundary(
+    child: widget.scope.buildSpread(context, anchor, interactive: false),
+  );
 
-  void _setMode() =>
-      _mode = _reduce ? _Mode.fade : (widget.kind == PageTurnKind.curl ? _Mode.curl : _Mode.flip);
+  void _setMode() => _mode = _reduce
+      ? _Mode.fade
+      : (widget.kind == PageTurnKind.curl ? _Mode.curl : _Mode.flip);
 
   void _start(int from, int to) {
-    if (widget.scope.duration == Duration.zero || !_size.isFinite || _size.isEmpty) return;
+    if (widget.scope.duration == Duration.zero ||
+        !_size.isFinite ||
+        _size.isEmpty)
+      return;
     _setMode();
     _from = from;
     _to = to;
@@ -197,7 +209,11 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
     _out = _retain(from);
     _in = _retain(to);
     _c.value = 0;
-    _runTo(1, _fullDuration, _mode == _Mode.fade ? Curves.linear : Curves.easeInOutCubic);
+    _runTo(
+      1,
+      _fullDuration,
+      _mode == _Mode.fade ? Curves.linear : Curves.easeInOutCubic,
+    );
   }
 
   void _runTo(double target, Duration d, Curve curve) {
@@ -238,7 +254,11 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
     _dragIgnored =
         !widget.scope.gesturesEnabled ||
         _phase != _Phase.idle || // never start a second turn
-        !PageTurnDrag.mayStart(local: d.localPosition, size: _size, kind: d.kind);
+        !PageTurnDrag.mayStart(
+          local: d.localPosition,
+          size: _size,
+          kind: d.kind,
+        );
   }
 
   void _onDragUpdate(DragUpdateDetails d) {
@@ -285,7 +305,8 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
       if (_dragTotal == 0) return;
       // Plain swipe (reduced motion): the reader moves, the fade follows.
       final dir = PageTurnDrag.directionFor(_dragTotal);
-      final enough = _dragTotal.abs() > 40 || v.abs() >= PageTurnDrag.flingVelocity;
+      final enough =
+          _dragTotal.abs() > 40 || v.abs() >= PageTurnDrag.flingVelocity;
       if (enough && _phase == _Phase.idle && s.gesturesEnabled) {
         if (dir > 0 && s.canGoForward) s.goForward();
         if (dir < 0 && s.canGoBack) s.goBack();
@@ -293,7 +314,11 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
       return;
     }
     _dragLive = false;
-    if (PageTurnDrag.shouldCommit(progress: _c.value, velocityX: v, direction: _dragDir)) {
+    if (PageTurnDrag.shouldCommit(
+      progress: _c.value,
+      velocityX: v,
+      direction: _dragDir,
+    )) {
       _commit();
     } else {
       _cancelDrag();
@@ -328,7 +353,8 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
 
   // --------------------------------------------------------------------- build
 
-  Color _paperBack(BuildContext context) => Theme.of(context).brightness == Brightness.dark
+  Color _paperBack(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
       ? const Color(0xFF241F1B)
       : const Color(0xFFF1E8D0);
 
@@ -340,7 +366,10 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
       builder: (ctx, constraints) {
         final size = constraints.biggest;
         _size = size;
-        if (_phase == _Phase.idle || !size.isFinite || _out == null || _in == null) {
+        if (_phase == _Phase.idle ||
+            !size.isFinite ||
+            _out == null ||
+            _in == null) {
           return s.buildSpread(ctx, s.anchor, interactive: true);
         }
         return IgnorePointer(
@@ -349,8 +378,10 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
             height: size.height,
             child: AnimatedBuilder(
               animation: _c,
-              builder: (ctx2, _) =>
-                  KeyedSubtree(key: pageTurnFrameKey, child: _frame(ctx2, size, _c.value)),
+              builder: (ctx2, _) => KeyedSubtree(
+                key: pageTurnFrameKey,
+                child: _frame(ctx2, size, _c.value),
+              ),
             ),
           ),
         );
@@ -378,7 +409,10 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
           children: [
             Positioned.fill(child: _out!),
             Positioned.fill(
-              child: Opacity(opacity: t.clamp(0.0, 1.0).toDouble(), child: _in!),
+              child: Opacity(
+                opacity: t.clamp(0.0, 1.0).toDouble(),
+                child: _in!,
+              ),
             ),
           ],
         );
@@ -408,7 +442,10 @@ class _PageTurnEngineState extends State<PageTurnEngine> with SingleTickerProvid
             // Outgoing spread, only where it has not been turned over yet. In
             // two-page mode that includes the stationary page.
             Positioned.fill(
-              child: ClipPath(clipper: PathClipper(f.hingeSidePath), child: _out!),
+              child: ClipPath(
+                clipper: PathClipper(f.hingeSidePath),
+                child: _out!,
+              ),
             ),
             Positioned.fill(
               child: CustomPaint(

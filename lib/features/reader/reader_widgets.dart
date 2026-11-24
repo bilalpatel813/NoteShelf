@@ -22,8 +22,11 @@ import 'reader_models.dart';
 
 /// Renders the spread whose first page is [anchor]. [interactive] is false for
 /// an outgoing / incoming snapshot that must not take focus or key input.
-typedef SpreadBuilder = Widget Function(BuildContext context, int anchor,
-    {required bool interactive});
+typedef SpreadBuilder = Widget Function(
+  BuildContext context,
+  int anchor, {
+  required bool interactive,
+});
 
 /// Everything an animator needs to show a page turn.
 class PageTurnScope {
@@ -124,37 +127,48 @@ class SpreadView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = SpreadMath.spreadFor(anchor, controller.pageCount, controller.layout);
+    final s = SpreadMath.spreadFor(
+      anchor,
+      controller.pageCount,
+      controller.layout,
+    );
     Widget sheet(int n, {required bool left}) => Expanded(
-          child: PageSheet(
-            controller: controller,
-            number: n,
-            interactive: interactive,
-            leftSide: left,
-          ),
-        );
+      child: PageSheet(
+        controller: controller,
+        number: n,
+        interactive: interactive,
+        leftSide: left,
+      ),
+    );
 
     if (controller.layout == ReaderLayout.folded) {
       return Row(children: [sheet(s.left, left: false)]);
     }
-    return Row(children: [
-      sheet(s.left, left: true),
-      Container(width: 2, color: Colors.black.withOpacity(0.18)), // gutter
-      // Odd final page: the right side is an empty sheet.
-      s.right == null ? const Expanded(child: _BlankSheet()) : sheet(s.right!, left: false),
-    ]);
+    return Row(
+      children: [
+        sheet(s.left, left: true),
+        Container(width: 2, color: Colors.black.withOpacity(0.18)), // gutter
+        // Odd final page: the right side is an empty sheet.
+        s.right == null
+            ? const Expanded(child: _BlankSheet())
+            : sheet(s.right!, left: false),
+      ],
+    );
   }
 }
 
-Color _paper(BuildContext context) => Theme.of(context).brightness == Brightness.dark
+Color _paper(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
     ? const Color(0xFF2B2622)
     : const Color(0xFFFBF4E4);
 
 class _BlankSheet extends StatelessWidget {
   const _BlankSheet();
   @override
-  Widget build(BuildContext context) =>
-      ColoredBox(color: _paper(context).withOpacity(0.6), child: const SizedBox.expand());
+  Widget build(BuildContext context) => ColoredBox(
+    color: _paper(context).withOpacity(0.6),
+    child: const SizedBox.expand(),
+  );
 }
 
 /// One page. Edit mode: multi-line TextField bound to the controller-owned
@@ -186,35 +200,54 @@ class PageSheet extends StatelessWidget {
       color: _paper(context),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          _Heading(controller: controller, buffer: b, editable: controller.isEdit && interactive),
-          const Divider(height: 12),
-          Expanded(child: _body(context, b, style, edit, scheme)),
-          const SizedBox(height: 6),
-          Row(children: [
-            if (controller.isEdit && interactive)
-              IconButton(
-                tooltip: 'Delete this page',
-                visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.delete_outline, size: 20),
-                onPressed: () => _confirmDelete(context),
-              ),
-            const Spacer(),
-            Text('${b.number}', // page number display
-                style: Theme.of(context).textTheme.labelMedium),
-            const Spacer(),
-            if (controller.isEdit && interactive) const SizedBox(width: 40),
-          ]),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _Heading(
+              controller: controller,
+              buffer: b,
+              editable: controller.isEdit && interactive,
+            ),
+            const Divider(height: 12),
+            Expanded(child: _body(context, b, style, edit, scheme)),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                if (controller.isEdit && interactive)
+                  IconButton(
+                    tooltip: 'Delete this page',
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () => _confirmDelete(context),
+                  ),
+                const Spacer(),
+                Text(
+                  '${b.number}', // page number display
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const Spacer(),
+                if (controller.isEdit && interactive) const SizedBox(width: 40),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _body(BuildContext context, PageBuffer b, TextStyle style, bool edit, ColorScheme scheme) {
+  Widget _body(
+    BuildContext context,
+    PageBuffer b,
+    TextStyle style,
+    bool edit,
+    ColorScheme scheme,
+  ) {
     if (!b.loaded) {
       if (b.error != null) {
         return _LoadFailed(
-            error: b.error!, onRetry: () => controller.reloadPage(number));
+          error: b.error!,
+          onRetry: () => controller.reloadPage(number),
+        );
       }
       return const Center(child: CircularProgressIndicator());
     }
@@ -250,10 +283,18 @@ class PageSheet extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete page $number?'),
-        content: const Text('The page and its text file will be removed. This cannot be undone.'),
+        content: const Text(
+          'The page and its text file will be removed. This cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -281,8 +322,13 @@ class _ReadOnlyText extends StatelessWidget {
     if (text.isEmpty) {
       return Align(
         alignment: Alignment.topLeft,
-        child: Text('This page is empty.',
-            style: style.copyWith(fontStyle: FontStyle.italic, color: style.color?.withOpacity(0.5))),
+        child: Text(
+          'This page is empty.',
+          style: style.copyWith(
+            fontStyle: FontStyle.italic,
+            color: style.color?.withOpacity(0.5),
+          ),
+        ),
       );
     }
     final paragraphs = text.replaceAll('\r\n', '\n').split('\n');
@@ -292,8 +338,11 @@ class _ReadOnlyText extends StatelessWidget {
         itemBuilder: (_, i) => Padding(
           padding: EdgeInsets.only(bottom: paragraphSpacing),
           // An empty line still takes one line of height, like in the editor.
-          child: Text(paragraphs[i].isEmpty ? ' ' : paragraphs[i],
-              style: style, textAlign: align),
+          child: Text(
+            paragraphs[i].isEmpty ? ' ' : paragraphs[i],
+            style: style,
+            textAlign: align,
+          ),
         ),
       ),
     );
@@ -301,7 +350,11 @@ class _ReadOnlyText extends StatelessWidget {
 }
 
 class _Heading extends StatelessWidget {
-  const _Heading({required this.controller, required this.buffer, required this.editable});
+  const _Heading({
+    required this.controller,
+    required this.buffer,
+    required this.editable,
+  });
   final ReaderController controller;
   final PageBuffer buffer;
   final bool editable;
@@ -309,14 +362,21 @@ class _Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme.titleMedium;
-    final label = Text(buffer.heading, style: t, maxLines: 1, overflow: TextOverflow.ellipsis);
+    final label = Text(
+      buffer.heading,
+      style: t,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
     if (!editable) return Align(alignment: Alignment.centerLeft, child: label);
     return InkWell(
       onTap: () => _rename(context),
-      child: Row(children: [
-        Expanded(child: label),
-        const Icon(Icons.edit_outlined, size: 16),
-      ]),
+      child: Row(
+        children: [
+          Expanded(child: label),
+          const Icon(Icons.edit_outlined, size: 16),
+        ],
+      ),
     );
   }
 
@@ -333,8 +393,14 @@ class _Heading extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Heading'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Rename')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, c.text),
+            child: const Text('Rename'),
+          ),
         ],
       ),
     );
@@ -349,14 +415,17 @@ class _LoadFailed extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.error_outline),
-          const SizedBox(height: 8),
-          const Text('This page could not be loaded.'),
-          const SizedBox(height: 8),
-          OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
-        ]),
-      );
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error_outline),
+        const SizedBox(height: 8),
+        const Text('This page could not be loaded.'),
+        const SizedBox(height: 8),
+        OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+      ],
+    ),
+  );
 }
 
 // =============================================================================
@@ -370,25 +439,28 @@ class PageNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = SpreadMath.label(controller.spread, controller.pageCount);
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      IconButton(
-        tooltip: 'Previous (Alt+Left)',
-        icon: const Icon(Icons.chevron_left),
-        onPressed: controller.canGoBack ? controller.previous : null,
-      ),
-      TextButton(onPressed: () => _jump(context), child: Text(label)),
-      IconButton(
-        tooltip: 'Next (Alt+Right)',
-        icon: const Icon(Icons.chevron_right),
-        onPressed: controller.canGoForward ? controller.next : null,
-      ),
-      if (controller.isEdit)
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
         IconButton(
-          tooltip: 'Add page',
-          icon: const Icon(Icons.note_add_outlined),
-          onPressed: controller.addPage,
+          tooltip: 'Previous (Alt+Left)',
+          icon: const Icon(Icons.chevron_left),
+          onPressed: controller.canGoBack ? controller.previous : null,
         ),
-    ]);
+        TextButton(onPressed: () => _jump(context), child: Text(label)),
+        IconButton(
+          tooltip: 'Next (Alt+Right)',
+          icon: const Icon(Icons.chevron_right),
+          onPressed: controller.canGoForward ? controller.next : null,
+        ),
+        if (controller.isEdit)
+          IconButton(
+            tooltip: 'Add page',
+            icon: const Icon(Icons.note_add_outlined),
+            onPressed: controller.addPage,
+          ),
+      ],
+    );
   }
 
   Future<void> _jump(BuildContext context) async {
@@ -405,9 +477,14 @@ class PageNavBar extends StatelessWidget {
           decoration: InputDecoration(hintText: '1 – ${controller.pageCount}'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, int.tryParse(c.text)), child: const Text('Go')),
+            onPressed: () => Navigator.pop(ctx, int.tryParse(c.text)),
+            child: const Text('Go'),
+          ),
         ],
       ),
     );
@@ -430,10 +507,17 @@ class SaveStatusChip extends StatelessWidget {
     };
     final isError = controller.overallStatus == SaveStatus.error;
     final color = isError ? Theme.of(context).colorScheme.error : null;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 16, color: color),
-      const SizedBox(width: 4),
-      Text(text, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color)),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: color),
+        ),
+      ],
+    );
   }
 }

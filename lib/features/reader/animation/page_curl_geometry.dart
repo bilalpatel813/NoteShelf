@@ -47,7 +47,8 @@ class Affine2 {
     b * o.e + d * o.f + f,
   );
 
-  Offset apply(Offset p) => Offset(a * p.dx + c * p.dy + e, b * p.dx + d * p.dy + f);
+  Offset apply(Offset p) =>
+      Offset(a * p.dx + c * p.dy + e, b * p.dx + d * p.dy + f);
 
   /// Column-major 4x4 for `Transform(transform: Matrix4.fromList(...))`.
   List<double> toColumnMajor4() => <double>[
@@ -160,7 +161,10 @@ class CurlFrame {
   final Affine2 back;
 
   Rect get bounds => Offset.zero & size;
-  Offset get foldMid => Offset((foldTop.dx + foldBottom.dx) / 2, (foldTop.dy + foldBottom.dy) / 2);
+  Offset get foldMid => Offset(
+    (foldTop.dx + foldBottom.dx) / 2,
+    (foldTop.dy + foldBottom.dy) / 2,
+  );
   Offset get foldDir {
     final d = foldBottom - foldTop;
     final len = d.distance;
@@ -179,12 +183,19 @@ class PageCurlGeometry {
   const PageCurlGeometry._();
 
   /// x of the binding the turning page is hinged on.
-  static double hingeFor(Size size, {required bool unfolded, required int direction}) =>
-      unfolded ? size.width / 2 : (direction > 0 ? 0.0 : size.width);
+  static double hingeFor(
+    Size size, {
+    required bool unfolded,
+    required int direction,
+  }) => unfolded ? size.width / 2 : (direction > 0 ? 0.0 : size.width);
 
   /// The page being turned: the right half for a forward turn and the left half
   /// for a backward turn in two-page mode, the whole area when folded.
-  static Rect regionFor(Size size, {required bool unfolded, required int direction}) {
+  static Rect regionFor(
+    Size size, {
+    required bool unfolded,
+    required int direction,
+  }) {
     if (!unfolded) return Offset.zero & size;
     final mid = size.width / 2;
     return direction > 0
@@ -193,7 +204,11 @@ class PageCurlGeometry {
   }
 
   /// The page that stays put (two-page mode) = the other half.
-  static Rect stationaryRegionFor(Size size, {required bool unfolded, required int direction}) {
+  static Rect stationaryRegionFor(
+    Size size, {
+    required bool unfolded,
+    required int direction,
+  }) {
     if (!unfolded) return Rect.zero;
     final mid = size.width / 2;
     return direction > 0
@@ -216,7 +231,8 @@ class PageCurlGeometry {
     final region = regionFor(size, unfolded: unfolded, direction: direction);
 
     final uFold = region.width * (1 - t); // distance of the fold from the hinge
-    final k = tilt * h * math.sin(math.pi * t); // 0 at both ends: no stray slivers
+    final k =
+        tilt * h * math.sin(math.pi * t); // 0 at both ends: no stray slivers
     final cx = hingeX + direction * uFold;
     final top = Offset(cx + direction * k, 0);
     final bottom = Offset(cx - direction * k, h);
@@ -227,10 +243,25 @@ class PageCurlGeometry {
     var n = Offset(dir.dy, -dir.dx);
     if (n.dx * direction < 0) n = Offset(-n.dx, -n.dy);
 
-    final page = <Offset>[region.topLeft, region.topRight, region.bottomRight, region.bottomLeft];
-    final bounds = <Offset>[Offset.zero, Offset(w, 0), Offset(w, h), Offset(0, h)];
+    final page = <Offset>[
+      region.topLeft,
+      region.topRight,
+      region.bottomRight,
+      region.bottomLeft,
+    ];
+    final bounds = <Offset>[
+      Offset.zero,
+      Offset(w, 0),
+      Offset(w, h),
+      Offset(0, h),
+    ];
     final revealed = clipPolygonToHalfPlane(page, top, n, keepPositive: true);
-    final hingeSide = clipPolygonToHalfPlane(bounds, top, n, keepPositive: false);
+    final hingeSide = clipPolygonToHalfPlane(
+      bounds,
+      top,
+      n,
+      keepPositive: false,
+    );
 
     final reflect = Affine2.reflection(top, dir);
     final sigma = Affine2.reflection(Offset(hingeX, 0), const Offset(0, 1));

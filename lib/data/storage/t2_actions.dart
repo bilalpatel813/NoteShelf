@@ -18,11 +18,15 @@ import 'txt_repositories.dart';
 final txtBookRepositoryProvider = Provider<TxtBookRepository>((ref) {
   final r = ref.watch(bookRepositoryProvider);
   if (r is TxtBookRepository) return r;
-  throw StateError('bookRepositoryProvider must be overridden with TxtBookRepository');
+  throw StateError(
+    'bookRepositoryProvider must be overridden with TxtBookRepository',
+  );
 });
 
 /// Extra storage API (rename heading, move page, fonts, relink, export...).
-final bookStoreProvider = Provider<BookStore>((ref) => ref.watch(txtBookRepositoryProvider).store);
+final bookStoreProvider = Provider<BookStore>(
+  (ref) => ref.watch(txtBookRepositoryProvider).store,
+);
 
 /// User-facing text for a storage failure.
 String describeStorageError(Object e) {
@@ -47,8 +51,10 @@ String describeStorageError(Object e) {
 }
 
 class T2Actions implements BookshelfActions {
-  T2Actions(this._ref, {required Future<void> Function(BuildContext, Book) openBook})
-      : _openBook = openBook;
+  T2Actions(
+    this._ref, {
+    required Future<void> Function(BuildContext, Book) openBook,
+  }) : _openBook = openBook;
 
   final Ref _ref;
   final Future<void> Function(BuildContext, Book) _openBook;
@@ -72,7 +78,8 @@ class T2Actions implements BookshelfActions {
   @override
   Future<void> importFolder(BuildContext context) async {
     final platform = _repo.platform;
-    if (platform == null) throw StateError('TxtBookRepository has no StoragePlatform');
+    if (platform == null)
+      throw StateError('TxtBookRepository has no StoragePlatform');
     String? ref;
     await _guarded(context, () async => ref = await platform.pickFolder());
     final picked = ref;
@@ -86,15 +93,19 @@ class T2Actions implements BookshelfActions {
             onPressed: () => Navigator.pop(ctx, ImportMode.copy),
             child: const ListTile(
               title: Text('Copy into BookNotes'),
-              subtitle: Text('Safe and always available. The original folder is left alone.'),
+              subtitle: Text(
+                'Safe and always available. The original folder is left alone.',
+              ),
             ),
           ),
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, ImportMode.link),
             child: const ListTile(
               title: Text('Use the folder where it is'),
-              subtitle: Text('Edits are saved straight into that folder. '
-                  'Needs permission to read and write it.'),
+              subtitle: Text(
+                'Edits are saved straight into that folder. '
+                'Needs permission to read and write it.',
+              ),
             ),
           ),
         ],
@@ -104,11 +115,15 @@ class T2Actions implements BookshelfActions {
     await _guarded(context, () async {
       final books = await _repo.importFolder(picked, mode: mode);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(books.length == 1
-              ? 'Imported "${books.first.title}"'
-              : 'Imported ${books.length} books'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              books.length == 1
+                  ? 'Imported "${books.first.title}"'
+                  : 'Imported ${books.length} books',
+            ),
+          ),
+        );
       }
     });
   }
@@ -122,10 +137,16 @@ class T2Actions implements BookshelfActions {
   /// Export as a ZIP chosen via the system "save as" dialog.
   Future<void> exportBookAsZip(BuildContext context, Book book) async {
     final platform = _repo.platform!;
-    final target = await platform.pickZipSaveTarget('${sanitizeFileStem(book.title)}.zip');
+    final target = await platform.pickZipSaveTarget(
+      '${sanitizeFileStem(book.title)}.zip',
+    );
     if (target == null || !context.mounted) return;
     await _guarded(context, () async {
-      await _repo.transfer.exportZipTo(book.id, target, overwrite: true); // OS confirmed
+      await _repo.transfer.exportZipTo(
+        book.id,
+        target,
+        overwrite: true,
+      ); // OS confirmed
       if (context.mounted) _snack(context, 'Exported "${book.title}" as ZIP');
     });
   }
@@ -137,7 +158,8 @@ class T2Actions implements BookshelfActions {
     if (parent == null || !context.mounted) return;
     await _guarded(context, () async {
       await _repo.transfer.exportFolder(book.id, parent);
-      if (context.mounted) _snack(context, 'Exported "${book.title}" to a folder');
+      if (context.mounted)
+        _snack(context, 'Exported "${book.title}" to a folder');
     });
   }
 
@@ -171,7 +193,10 @@ class T2Actions implements BookshelfActions {
   void _snack(BuildContext context, String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-  Future<void> _guarded(BuildContext context, Future<void> Function() body) async {
+  Future<void> _guarded(
+    BuildContext context,
+    Future<void> Function() body,
+  ) async {
     try {
       await body();
     } catch (e) {
@@ -181,7 +206,12 @@ class T2Actions implements BookshelfActions {
         builder: (ctx) => AlertDialog(
           title: const Text('Could not complete that'),
           content: Text(describeStorageError(e)),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
         ),
       );
     }
@@ -196,7 +226,14 @@ class _NewBookDialog extends StatefulWidget {
 }
 
 class _NewBookDialogState extends State<_NewBookDialog> {
-  static const _colors = [0xFF7A2E2E, 0xFF1F3A5F, 0xFF2F4A2A, 0xFF5B2A63, 0xFF5A4630, 0xFF0F5D5A];
+  static const _colors = [
+    0xFF7A2E2E,
+    0xFF1F3A5F,
+    0xFF2F4A2A,
+    0xFF5B2A63,
+    0xFF5A4630,
+    0xFF0F5D5A,
+  ];
   final _title = TextEditingController();
   final _subject = TextEditingController();
   int _color = _colors.first;
@@ -214,7 +251,11 @@ class _NewBookDialogState extends State<_NewBookDialog> {
     final s = _subject.text.trim();
     Navigator.pop(
       context,
-      NewBookRequest(title: t, subject: s.isEmpty ? 'General' : s, coverColorValue: _color),
+      NewBookRequest(
+        title: t,
+        subject: s.isEmpty ? 'General' : s,
+        coverColorValue: _color,
+      ),
     );
   }
 
@@ -224,35 +265,50 @@ class _NewBookDialogState extends State<_NewBookDialog> {
       title: const Text('New Book'),
       content: SizedBox(
         width: 360,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: _title,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Title'),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _subject,
-            decoration: const InputDecoration(labelText: 'Subject'),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 16),
-          Wrap(spacing: 10, children: [
-            for (final c in _colors)
-              GestureDetector(
-                onTap: () => setState(() => _color = c),
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Color(c),
-                  child: _color == c ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
-                ),
-              ),
-          ]),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _title,
+              autofocus: true,
+              decoration: const InputDecoration(labelText: 'Title'),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _subject,
+              decoration: const InputDecoration(labelText: 'Subject'),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              children: [
+                for (final c in _colors)
+                  GestureDetector(
+                    onTap: () => setState(() => _color = c),
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Color(c),
+                      child: _color == c
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
         FilledButton(onPressed: _submit, child: const Text('Create book')),
       ],
     );

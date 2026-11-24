@@ -24,8 +24,11 @@ class CompositeBackend implements StorageBackend {
     if (isSafRef(ref)) {
       final s = saf;
       if (s == null) {
-        throw StorageException(StorageErrorKind.unsupported,
-            'content:// folders are only available on Android', ref: ref);
+        throw StorageException(
+          StorageErrorKind.unsupported,
+          'content:// folders are only available on Android',
+          ref: ref,
+        );
       }
       return s;
     }
@@ -33,7 +36,8 @@ class CompositeBackend implements StorageBackend {
   }
 
   @override
-  Future<void> checkAccess(String r, {bool write = true}) => _for(r).checkAccess(r, write: write);
+  Future<void> checkAccess(String r, {bool write = true}) =>
+      _for(r).checkAccess(r, write: write);
   @override
   Future<String> displayName(String r) => _for(r).displayName(r);
   @override
@@ -43,16 +47,22 @@ class CompositeBackend implements StorageBackend {
   @override
   Future<Uint8List> readBytes(String r, String n) => _for(r).readBytes(r, n);
   @override
-  Future<StorageEntry> writeBytes(String r, String n, Uint8List b, {bool overwrite = false}) =>
-      _for(r).writeBytes(r, n, b, overwrite: overwrite);
+  Future<StorageEntry> writeBytes(
+    String r,
+    String n,
+    Uint8List b, {
+    bool overwrite = false,
+  }) => _for(r).writeBytes(r, n, b, overwrite: overwrite);
   @override
   Future<void> delete(String r, String n) => _for(r).delete(r, n);
   @override
-  Future<void> rename(String r, String n, String nn) => _for(r).rename(r, n, nn);
+  Future<void> rename(String r, String n, String nn) =>
+      _for(r).rename(r, n, nn);
   @override
   Future<String> createFolder(String r, String n) => _for(r).createFolder(r, n);
   @override
-  Future<void> moveFolder(String r, String dp, String dn) => _for(r).moveFolder(r, dp, dn);
+  Future<void> moveFolder(String r, String dp, String dn) =>
+      _for(r).moveFolder(r, dp, dn);
   @override
   Future<void> deleteFolder(String r) => _for(r).deleteFolder(r);
   @override
@@ -79,7 +89,11 @@ class StoragePlatform {
       root = p.join(docs.path, 'BookNotes');
     }
     final saf = Platform.isAndroid ? SafBackend() : null;
-    return StoragePlatform._(CompositeBackend(const IoBackend(), saf), root, saf);
+    return StoragePlatform._(
+      CompositeBackend(const IoBackend(), saf),
+      root,
+      saf,
+    );
   }
 
   /// SAF persistent-permission handling is available (Android only).
@@ -97,8 +111,11 @@ class StoragePlatform {
   Future<String?> pickZipToImport() async {
     final saf = _saf;
     if (saf != null) {
-      return saf.pickOpenDocument(
-          ['application/zip', 'application/x-zip-compressed', 'application/octet-stream']);
+      return saf.pickOpenDocument([
+        'application/zip',
+        'application/x-zip-compressed',
+        'application/octet-stream',
+      ]);
     }
     final r = await FilePicker.platform.pickFiles(
       dialogTitle: 'Choose a BookNotes ZIP',
@@ -113,7 +130,8 @@ class StoragePlatform {
   /// result to writeDocument(overwrite: true).
   Future<String?> pickZipSaveTarget(String suggestedName) async {
     final saf = _saf;
-    if (saf != null) return saf.pickCreateDocument(suggestedName, 'application/zip');
+    if (saf != null)
+      return saf.pickCreateDocument(suggestedName, 'application/zip');
     final path = await FilePicker.platform.saveFile(
       dialogTitle: 'Export book as ZIP',
       fileName: suggestedName,

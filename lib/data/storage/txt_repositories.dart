@@ -35,13 +35,16 @@ class TxtBookRepository implements BookRepository {
   Future<void> deleteBook(String bookId) => store.deleteBook(bookId);
 
   @override
-  Future<void> markOpened(String bookId, {int? page}) => store.markOpened(bookId, page: page);
+  Future<void> markOpened(String bookId, {int? page}) =>
+      store.markOpened(bookId, page: page);
 
   /// Contract method; the extra [mode] defaults to copy. Pass
   /// [ImportMode.link] to keep using the folder in place.
   @override
-  Future<List<Book>> importFolder(String folderPath, {ImportMode mode = ImportMode.copy}) =>
-      store.importFolder(folderPath, mode: mode);
+  Future<List<Book>> importFolder(
+    String folderPath, {
+    ImportMode mode = ImportMode.copy,
+  }) => store.importFolder(folderPath, mode: mode);
 
   BookTransfer get transfer => BookTransfer(store);
 }
@@ -62,8 +65,11 @@ class TxtPageRepository implements PageRepository {
       store.readPage(bookId, pageNumber);
 
   @override
-  Future<BookPage> createPage(String bookId, {int? atNumber, String? heading}) =>
-      store.createPage(bookId, atNumber: atNumber, heading: heading);
+  Future<BookPage> createPage(
+    String bookId, {
+    int? atNumber,
+    String? heading,
+  }) => store.createPage(bookId, atNumber: atNumber, heading: heading);
 
   /// Throws StorageException(conflict) if the file changed outside the app or
   /// the page was renumbered since it was read. [force] overrides the first.
@@ -79,8 +85,8 @@ class TxtPageRepository implements PageRepository {
 /// Everything wired up for main(): `final storage = await TxtStorage.open();`
 class TxtStorage {
   TxtStorage._(this.platform, this.store)
-      : books = TxtBookRepository(store, platform: platform),
-        pages = TxtPageRepository(store);
+    : books = TxtBookRepository(store, platform: platform),
+      pages = TxtPageRepository(store);
 
   final StoragePlatform platform;
   final BookStore store;

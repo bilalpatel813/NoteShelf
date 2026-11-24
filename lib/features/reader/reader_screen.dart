@@ -15,7 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/book.dart';
 import '../../data/storage/book_store.dart';
-import '../../data/storage/t2_actions.dart' show bookStoreProvider, describeStorageError;
+import '../../data/storage/t2_actions.dart'
+    show bookStoreProvider, describeStorageError;
 import 'reader_controller.dart';
 import 'reader_models.dart';
 import 'animation/page_turn_animator.dart';
@@ -43,18 +44,24 @@ class BookStoreReaderStorage implements ReaderStorage {
   Future<BookPage> renamePage(String bookId, int n, String heading) =>
       store.renamePage(bookId, n, heading);
   @override
-  Future<FontSettings> getFontSettings(String bookId) => store.getFontSettings(bookId);
+  Future<FontSettings> getFontSettings(String bookId) =>
+      store.getFontSettings(bookId);
   @override
-  Future<void> setFontSettings(String bookId, FontSettings f) => store.setFontSettings(bookId, f);
+  Future<void> setFontSettings(String bookId, FontSettings f) =>
+      store.setFontSettings(bookId, f);
   @override
-  Future<void> markOpened(String bookId, {int? page}) => store.markOpened(bookId, page: page);
+  Future<void> markOpened(String bookId, {int? page}) =>
+      store.markOpened(bookId, page: page);
 }
 
 /// For `T2Actions(ref, openBook: openReader(ref))` in main.dart.
-Future<void> Function(BuildContext, Book) openReader(Ref ref) => (context, book) {
+Future<void> Function(BuildContext, Book) openReader(Ref ref) =>
+    (context, book) {
       final storage = BookStoreReaderStorage(ref.read(bookStoreProvider));
       return Navigator.of(context).push<void>(
-        MaterialPageRoute(builder: (_) => ReaderScreen(book: book, storage: storage)),
+        MaterialPageRoute(
+          builder: (_) => ReaderScreen(book: book, storage: storage),
+        ),
       );
     };
 
@@ -79,14 +86,24 @@ class BookReaderView extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        if (controller.loading) return const Center(child: CircularProgressIndicator());
+        if (controller.loading)
+          return const Center(child: CircularProgressIndicator());
         if (controller.loadError != null) {
           return Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text(describeStorageError(controller.loadError!), textAlign: TextAlign.center),
-              const SizedBox(height: 12),
-              OutlinedButton(onPressed: controller.open, child: const Text('Try again')),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  describeStorageError(controller.loadError!),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: controller.open,
+                  child: const Text('Try again'),
+                ),
+              ],
+            ),
           );
         }
         final scope = PageTurnScope(
@@ -98,12 +115,17 @@ class BookReaderView extends StatelessWidget {
           gesturesEnabled: !controller.isEdit,
           goBack: controller.previous,
           goForward: controller.next,
-          buildSpread: (ctx, anchor, {required interactive}) =>
-              SpreadView(controller: controller, anchor: anchor, interactive: interactive),
+          buildSpread: (ctx, anchor, {required interactive}) => SpreadView(
+            controller: controller,
+            anchor: anchor,
+            interactive: interactive,
+          ),
         );
         Widget pages = DecoratedBox(
           decoration: BoxDecoration(
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 12)],
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 12),
+            ],
           ),
           child: ClipRect(child: animator.build(context, scope)),
         );
@@ -120,10 +142,14 @@ class BookReaderView extends StatelessWidget {
             child: pages,
           );
         }
-        return Column(children: [
-          Expanded(child: Padding(padding: const EdgeInsets.all(12), child: pages)),
-          PageNavBar(controller: controller),
-        ]);
+        return Column(
+          children: [
+            Expanded(
+              child: Padding(padding: const EdgeInsets.all(12), child: pages),
+            ),
+            PageNavBar(controller: controller),
+          ],
+        );
       },
     );
   }
@@ -137,7 +163,8 @@ class BookReaderView extends StatelessWidget {
       for (final anchor in [here + step, here - step]) {
         for (var i = 0; i < step; i++) {
           final b = c.bufferFor(anchor + i);
-          if (b != null && !b.loaded && b.error == null) unawaited(c.ensureLoaded(anchor + i));
+          if (b != null && !b.loaded && b.error == null)
+            unawaited(c.ensureLoaded(anchor + i));
         }
       }
     });
@@ -173,6 +200,7 @@ class ReaderScreen extends StatefulWidget {
 
   final Book book;
   final ReaderStorage storage;
+
   /// Fixed animator. Leave null to let the reader's "Page turn" menu choose
   /// (default [kDefaultPageTurnStyle]).
   final PageTurnAnimator? animator;
@@ -182,7 +210,8 @@ class ReaderScreen extends StatefulWidget {
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
 
-class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver {
+class _ReaderScreenState extends State<ReaderScreen>
+    with WidgetsBindingObserver {
   late final ReaderController c;
   bool _closing = false;
   PageTurnStyle _style = kDefaultPageTurnStyle;
@@ -192,7 +221,10 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     c = ReaderController(
-        book: widget.book, storage: widget.storage, autosaveDelay: widget.autosaveDelay);
+      book: widget.book,
+      storage: widget.storage,
+      autosaveDelay: widget.autosaveDelay,
+    );
     c.addListener(_onChange);
     unawaited(c.open());
   }
@@ -234,7 +266,9 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
           c.discardUnsaved();
           break;
         }
-        ok = choice == _Choice.overwrite ? await c.overwriteConflicts() : await c.retrySave();
+        ok = choice == _Choice.overwrite
+            ? await c.overwriteConflicts()
+            : await c.retrySave();
       }
       if (mounted) Navigator.of(context).pop();
     } finally {
@@ -250,39 +284,48 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('Your changes are not saved'),
-        content: Text(err == null ? 'Saving did not finish.' : describeStorageError(err)),
+        content: Text(
+          err == null ? 'Saving did not finish.' : describeStorageError(err),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, _Choice.stay), child: const Text('Keep editing')),
+            onPressed: () => Navigator.pop(ctx, _Choice.stay),
+            child: const Text('Keep editing'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, _Choice.discard),
-              child: const Text('Discard changes')),
+            onPressed: () => Navigator.pop(ctx, _Choice.discard),
+            child: const Text('Discard changes'),
+          ),
           if (conflict)
             TextButton(
-                onPressed: () => Navigator.pop(ctx, _Choice.overwrite),
-                child: const Text('Overwrite file')),
+              onPressed: () => Navigator.pop(ctx, _Choice.overwrite),
+              child: const Text('Overwrite file'),
+            ),
           FilledButton(
-              onPressed: () => Navigator.pop(ctx, _Choice.retry), child: const Text('Try again')),
+            onPressed: () => Navigator.pop(ctx, _Choice.retry),
+            child: const Text('Try again'),
+          ),
         ],
       ),
     );
   }
 
   Map<ShortcutActivator, VoidCallback> _shortcuts() => {
-        const SingleActivator(LogicalKeyboardKey.keyS, control: true): () => c.flush(),
-        const SingleActivator(LogicalKeyboardKey.keyE, control: true): () =>
-            c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
-        const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): c.next,
-        const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): c.previous,
-        const SingleActivator(LogicalKeyboardKey.pageDown, control: true): c.next,
-        const SingleActivator(LogicalKeyboardKey.pageUp, control: true): c.previous,
-        if (!c.isEdit) ...{
-          const SingleActivator(LogicalKeyboardKey.arrowRight): c.next,
-          const SingleActivator(LogicalKeyboardKey.arrowLeft): c.previous,
-          const SingleActivator(LogicalKeyboardKey.pageDown): c.next,
-          const SingleActivator(LogicalKeyboardKey.pageUp): c.previous,
-        },
-      };
+    const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
+        c.flush(),
+    const SingleActivator(LogicalKeyboardKey.keyE, control: true): () =>
+        c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
+    const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): c.next,
+    const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): c.previous,
+    const SingleActivator(LogicalKeyboardKey.pageDown, control: true): c.next,
+    const SingleActivator(LogicalKeyboardKey.pageUp, control: true): c.previous,
+    if (!c.isEdit) ...{
+      const SingleActivator(LogicalKeyboardKey.arrowRight): c.next,
+      const SingleActivator(LogicalKeyboardKey.arrowLeft): c.previous,
+      const SingleActivator(LogicalKeyboardKey.pageDown): c.next,
+      const SingleActivator(LogicalKeyboardKey.pageUp): c.previous,
+    },
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -303,10 +346,17 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
                 title: Text(widget.book.title, overflow: TextOverflow.ellipsis),
                 actions: _actions(context),
               ),
-              body: Column(children: [
-                if (c.hasSaveError) _saveErrorBanner(context),
-                Expanded(child: BookReaderView(controller: c, animator: widget.animator ?? animatorForStyle(_style))),
-              ]),
+              body: Column(
+                children: [
+                  if (c.hasSaveError) _saveErrorBanner(context),
+                  Expanded(
+                    child: BookReaderView(
+                      controller: c,
+                      animator: widget.animator ?? animatorForStyle(_style),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -315,43 +365,52 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
   }
 
   List<Widget> _actions(BuildContext context) => [
-        if (c.isEdit) Center(child: SaveStatusChip(controller: c)),
-        if (c.isEdit)
-          IconButton(
-            tooltip: 'Save (Ctrl+S)',
-            icon: const Icon(Icons.save_outlined),
-            onPressed: c.hasUnsavedChanges ? () => c.flush() : null,
-          ),
-        IconButton(
-          tooltip: c.isEdit ? 'Switch to View mode (Ctrl+E)' : 'Switch to Edit mode (Ctrl+E)',
-          icon: Icon(c.isEdit ? Icons.menu_book_outlined : Icons.edit_outlined),
-          onPressed: () => c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
-        ),
-        IconButton(
-          tooltip: c.layout == ReaderLayout.folded ? 'Unfold (two pages)' : 'Fold (one page)',
-          icon: Icon(c.layout == ReaderLayout.folded
-              ? Icons.auto_stories_outlined
-              : Icons.crop_portrait),
-          onPressed: () => c.setLayout(
-              c.layout == ReaderLayout.folded ? ReaderLayout.unfolded : ReaderLayout.folded),
-        ),
-        if (widget.animator == null)
-          PopupMenuButton<PageTurnStyle>(
-            tooltip: 'Page turn style',
-            icon: const Icon(Icons.flip_outlined),
-            initialValue: _style,
-            onSelected: (v) => setState(() => _style = v),
-            itemBuilder: (_) => [
-              for (final st in PageTurnStyle.values)
-                PopupMenuItem(value: st, child: Text(st.label)),
-            ],
-          ),
-        IconButton(
-          tooltip: 'Fonts and text',
-          icon: const Icon(Icons.text_fields),
-          onPressed: () => showTypographySheet(context, c),
-        ),
-      ];
+    if (c.isEdit) Center(child: SaveStatusChip(controller: c)),
+    if (c.isEdit)
+      IconButton(
+        tooltip: 'Save (Ctrl+S)',
+        icon: const Icon(Icons.save_outlined),
+        onPressed: c.hasUnsavedChanges ? () => c.flush() : null,
+      ),
+    IconButton(
+      tooltip: c.isEdit
+          ? 'Switch to View mode (Ctrl+E)'
+          : 'Switch to Edit mode (Ctrl+E)',
+      icon: Icon(c.isEdit ? Icons.menu_book_outlined : Icons.edit_outlined),
+      onPressed: () => c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
+    ),
+    IconButton(
+      tooltip: c.layout == ReaderLayout.folded
+          ? 'Unfold (two pages)'
+          : 'Fold (one page)',
+      icon: Icon(
+        c.layout == ReaderLayout.folded
+            ? Icons.auto_stories_outlined
+            : Icons.crop_portrait,
+      ),
+      onPressed: () => c.setLayout(
+        c.layout == ReaderLayout.folded
+            ? ReaderLayout.unfolded
+            : ReaderLayout.folded,
+      ),
+    ),
+    if (widget.animator == null)
+      PopupMenuButton<PageTurnStyle>(
+        tooltip: 'Page turn style',
+        icon: const Icon(Icons.flip_outlined),
+        initialValue: _style,
+        onSelected: (v) => setState(() => _style = v),
+        itemBuilder: (_) => [
+          for (final st in PageTurnStyle.values)
+            PopupMenuItem(value: st, child: Text(st.label)),
+        ],
+      ),
+    IconButton(
+      tooltip: 'Fonts and text',
+      icon: const Icon(Icons.text_fields),
+      onPressed: () => showTypographySheet(context, c),
+    ),
+  ];
 
   Widget _saveErrorBanner(BuildContext context) {
     final err = c.pages.where((p) => p.error != null && p.dirty).first;
@@ -363,13 +422,19 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
       ),
       leading: const Icon(Icons.error_outline),
       actions: [
-        TextButton(onPressed: () => c.retrySave(), child: const Text('Try again')),
+        TextButton(
+          onPressed: () => c.retrySave(),
+          child: const Text('Try again'),
+        ),
         if (conflict) ...[
           TextButton(
-              onPressed: () => c.overwriteConflicts(), child: const Text('Overwrite file')),
+            onPressed: () => c.overwriteConflicts(),
+            child: const Text('Overwrite file'),
+          ),
           TextButton(
-              onPressed: () => c.reloadPage(err.number),
-              child: const Text('Reload from file')),
+            onPressed: () => c.reloadPage(err.number),
+            child: const Text('Reload from file'),
+          ),
         ],
       ],
     );

@@ -34,7 +34,10 @@ class InMemoryBookRepository implements BookRepository {
       title: r.title,
       subject: r.subject,
       folderRef: 'memory://$id',
-      cover: BookCoverRef(imagePath: r.coverImagePath, colorValue: r.coverColorValue),
+      cover: BookCoverRef(
+        imagePath: r.coverImagePath,
+        colorValue: r.coverColorValue,
+      ),
       pageCount: 1,
     );
     _books.add(book);
@@ -72,27 +75,75 @@ class InMemoryBookRepository implements BookRepository {
   Future<List<Book>> importFolder(String folderPath) async => const [];
 
   static List<Book> _samples(DateTime now) {
-    Book b(int n, String title, String subject, int pages, Duration? ago, int color) =>
-        Book(
-          id: 'sample-$n',
-          title: title,
-          subject: subject,
-          folderRef: 'memory://sample-$n',
-          cover: BookCoverRef(colorValue: color),
-          pageCount: pages,
-          lastOpenedPage: ago == null ? 1 : (pages ~/ 3).clamp(1, pages),
-          lastOpenedAt: ago == null ? null : now.subtract(ago),
-        );
+    Book b(
+      int n,
+      String title,
+      String subject,
+      int pages,
+      Duration? ago,
+      int color,
+    ) => Book(
+      id: 'sample-$n',
+      title: title,
+      subject: subject,
+      folderRef: 'memory://sample-$n',
+      cover: BookCoverRef(colorValue: color),
+      pageCount: pages,
+      lastOpenedPage: ago == null ? 1 : (pages ~/ 3).clamp(1, pages),
+      lastOpenedAt: ago == null ? null : now.subtract(ago),
+    );
     return [
-      b(1, 'Astronomy Field Notes', 'Science', 48, const Duration(hours: 2), 0xFF1F3A5F),
-      b(2, 'Kitchen Experiments', 'Cooking', 32, const Duration(days: 1), 0xFF8A3B12),
-      b(3, 'Flutter Study Journal', 'Programming', 120, const Duration(days: 3), 0xFF0F5D5A),
+      b(
+        1,
+        'Astronomy Field Notes',
+        'Science',
+        48,
+        const Duration(hours: 2),
+        0xFF1F3A5F,
+      ),
+      b(
+        2,
+        'Kitchen Experiments',
+        'Cooking',
+        32,
+        const Duration(days: 1),
+        0xFF8A3B12,
+      ),
+      b(
+        3,
+        'Flutter Study Journal',
+        'Programming',
+        120,
+        const Duration(days: 3),
+        0xFF0F5D5A,
+      ),
       b(4, 'Monsoon Poems', 'Poetry', 24, const Duration(days: 5), 0xFF5B2A63),
-      b(5, 'Linear Algebra', 'Mathematics', 86, const Duration(days: 9), 0xFF2F4A2A),
-      b(6, 'Travel Diary: Kerala', 'Travel', 64, const Duration(days: 16), 0xFF7A2E2E),
+      b(
+        5,
+        'Linear Algebra',
+        'Mathematics',
+        86,
+        const Duration(days: 9),
+        0xFF2F4A2A,
+      ),
+      b(
+        6,
+        'Travel Diary: Kerala',
+        'Travel',
+        64,
+        const Duration(days: 16),
+        0xFF7A2E2E,
+      ),
       b(7, 'Garden Log', 'Hobbies', 18, const Duration(days: 40), 0xFF4D5A1E),
       b(8, 'Startup Ideas', 'Business', 27, null, 0xFF3B3B52),
-      b(9, 'Meeting Minutes 2026', 'Work', 210, const Duration(days: 70), 0xFF5A4630),
+      b(
+        9,
+        'Meeting Minutes 2026',
+        'Work',
+        210,
+        const Duration(days: 70),
+        0xFF5A4630,
+      ),
     ];
   }
 }
