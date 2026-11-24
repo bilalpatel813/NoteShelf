@@ -67,9 +67,9 @@ class _Spread extends StatelessWidget {
   final bool unfolded;
 
   Widget _page(int p) => ColoredBox(
-    color: Colors.white,
-    child: Center(child: Text('page $p')),
-  );
+        color: Colors.white,
+        child: Center(child: Text('page $p')),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -92,28 +92,29 @@ Future<void> _pump(
   bool gestures = true,
   bool reduced = false,
   PageTurnAnimator animator = const CurlPageTurnAnimator(),
-}) => t.pumpWidget(
-  MaterialApp(
-    builder: (context, child) => MediaQuery(
-      data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
-      child: child!,
-    ),
-    home: Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: 600,
-          height: 400,
-          child: _Harness(
-            anchor: anchor,
-            layout: layout,
-            gestures: gestures,
-            animator: animator,
+}) =>
+    t.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: reduced),
+          child: child!,
+        ),
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 600,
+              height: 400,
+              child: _Harness(
+                anchor: anchor,
+                layout: layout,
+                gestures: gestures,
+                animator: animator,
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  ),
-);
+    );
 
 bool _turning() => find.byKey(pageTurnFrameKey).evaluate().isNotEmpty;
 
@@ -127,9 +128,9 @@ CurlFrame? _curl(WidgetTester t) {
 }
 
 Set<int> _visible() => {
-  for (var n = 1; n <= _pageCount + 1; n++)
-    if (find.text('page $n').evaluate().isNotEmpty) n,
-};
+      for (var n = 1; n <= _pageCount + 1; n++)
+        if (find.text('page $n').evaluate().isNotEmpty) n,
+    };
 
 const _ms = Duration(milliseconds: 1);
 
@@ -534,7 +535,9 @@ void main() {
       },
     );
 
-    test('animatorForStyle maps every style, and only slide leaves gestures to the reader', () {
+    test(
+        'animatorForStyle maps every style, and only slide leaves gestures to the reader',
+        () {
       expect(animatorForStyle(PageTurnStyle.curl), isA<CurlPageTurnAnimator>());
       expect(animatorForStyle(PageTurnStyle.flip), isA<FlipPageTurnAnimator>());
       expect(

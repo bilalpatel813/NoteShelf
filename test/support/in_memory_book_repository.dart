@@ -82,16 +82,17 @@ class InMemoryBookRepository implements BookRepository {
       int pages,
       Duration? ago,
       int color,
-    ) => Book(
-      id: 'sample-$n',
-      title: title,
-      subject: subject,
-      folderRef: 'memory://sample-$n',
-      cover: BookCoverRef(colorValue: color),
-      pageCount: pages,
-      lastOpenedPage: ago == null ? 1 : (pages ~/ 3).clamp(1, pages),
-      lastOpenedAt: ago == null ? null : now.subtract(ago),
-    );
+    ) =>
+        Book(
+          id: 'sample-$n',
+          title: title,
+          subject: subject,
+          folderRef: 'memory://sample-$n',
+          cover: BookCoverRef(colorValue: color),
+          pageCount: pages,
+          lastOpenedPage: ago == null ? 1 : (pages ~/ 3).clamp(1, pages),
+          lastOpenedAt: ago == null ? null : now.subtract(ago),
+        );
     return [
       b(
         1,

@@ -31,11 +31,12 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   bool get _desktop => switch (Theme.of(context).platform) {
-    TargetPlatform.windows ||
-    TargetPlatform.linux ||
-    TargetPlatform.macos => true,
-    _ => false,
-  };
+        TargetPlatform.windows ||
+        TargetPlatform.linux ||
+        TargetPlatform.macos =>
+          true,
+        _ => false,
+      };
 
   // ----------------------------------------------------------------- actions
 
@@ -58,10 +59,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _showContextMenu(Book book, Offset position) async {
-    final selected = ref
-        .read(shelfControllerProvider)
-        .selectedIds
-        .contains(book.id);
+    final selected =
+        ref.read(shelfControllerProvider).selectedIds.contains(book.id);
     final entries = <(_BookAction, IconData, String)>[
       (_BookAction.open, Icons.menu_book_outlined, 'Open'),
       (
@@ -201,18 +200,19 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
   void _showInfo(Book book) {
     Widget row(String k, String v) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(k, style: const TextStyle(fontWeight: FontWeight.w600)),
+          padding: const EdgeInsets.symmetric(vertical: 3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 110,
+                child: Text(k,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              Expanded(child: Text(v)),
+            ],
           ),
-          Expanded(child: Text(v)),
-        ],
-      ),
-    );
+        );
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -240,9 +240,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _confirmDelete(List<Book> books) async {
-    final label = books.length == 1
-        ? '"${books.first.title}"'
-        : '${books.length} books';
+    final label =
+        books.length == 1 ? '"${books.first.title}"' : '${books.length} books';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -283,9 +282,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
     final PreferredSizeWidget appBar;
     if (shelf.selecting) {
-      final selectedBooks = visible
-          .where((b) => shelf.selectedIds.contains(b.id))
-          .toList();
+      final selectedBooks =
+          visible.where((b) => shelf.selectedIds.contains(b.id)).toList();
       appBar = AppBar(
         leading: IconButton(
           tooltip: 'Clear selection',
@@ -316,8 +314,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
       );
     } else {
       final mode = ref.watch(themeModeProvider);
-      final isDark =
-          mode == ThemeMode.dark ||
+      final isDark = mode == ThemeMode.dark ||
           (mode == ThemeMode.system &&
               MediaQuery.platformBrightnessOf(context) == Brightness.dark);
       appBar = AppBar(

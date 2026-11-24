@@ -176,8 +176,8 @@ String decodeText(Uint8List b) {
 Uint8List encodeText(String s) => Uint8List.fromList(utf8.encode(s));
 
 Uint8List _encodeJson(Object? o) => Uint8List.fromList(
-  utf8.encode(const JsonEncoder.withIndent('  ').convert(o)),
-);
+      utf8.encode(const JsonEncoder.withIndent('  ').convert(o)),
+    );
 
 // ===========================================================================
 // Public value types
@@ -231,25 +231,26 @@ class FontSettings {
     String? align,
     int? colorValue,
     bool clearColor = false,
-  }) => FontSettings(
-    family: family ?? this.family,
-    size: size ?? this.size,
-    lineHeight: lineHeight ?? this.lineHeight,
-    weight: weight ?? this.weight,
-    paragraphSpacing: paragraphSpacing ?? this.paragraphSpacing,
-    align: align ?? this.align,
-    colorValue: clearColor ? null : (colorValue ?? this.colorValue),
-  );
+  }) =>
+      FontSettings(
+        family: family ?? this.family,
+        size: size ?? this.size,
+        lineHeight: lineHeight ?? this.lineHeight,
+        weight: weight ?? this.weight,
+        paragraphSpacing: paragraphSpacing ?? this.paragraphSpacing,
+        align: align ?? this.align,
+        colorValue: clearColor ? null : (colorValue ?? this.colorValue),
+      );
 
   Map<String, Object?> toJson() => {
-    'family': family,
-    'size': size,
-    'lineHeight': lineHeight,
-    'weight': weight,
-    'paragraphSpacing': paragraphSpacing,
-    'align': align,
-    'colorValue': colorValue,
-  };
+        'family': family,
+        'size': size,
+        'lineHeight': lineHeight,
+        'weight': weight,
+        'paragraphSpacing': paragraphSpacing,
+        'align': align,
+        'colorValue': colorValue,
+      };
 
   /// Old files (family/size/lineHeight only) still load; new fields default.
   factory FontSettings.fromJson(Object? raw) {
@@ -265,9 +266,8 @@ class FontSettings {
           ? (raw['paragraphSpacing'] as num).toDouble()
           : 8,
       align: raw['align'] is String ? raw['align'] as String : 'left',
-      colorValue: raw['colorValue'] is num
-          ? (raw['colorValue'] as num).toInt()
-          : null,
+      colorValue:
+          raw['colorValue'] is num ? (raw['colorValue'] as num).toInt() : null,
     );
   }
 }
@@ -365,8 +365,8 @@ class BookStore {
     this.onFolderReleased,
     DateTime Function()? clock,
     Uuid? uuid,
-  }) : _now = clock ?? DateTime.now,
-       _uuid = uuid ?? const Uuid() {
+  })  : _now = clock ?? DateTime.now,
+        _uuid = uuid ?? const Uuid() {
     _ready = _lock.run(_init);
     _ready.ignore();
     _ready.then<void>((_) => _startBackgroundRefresh(), onError: (Object _) {});
@@ -468,9 +468,8 @@ class BookStore {
         final linked = m['kind'] == 'linked';
         final snap = Map<String, Object?>.from(m['snapshot'] as Map);
         final internalName = linked ? null : m['name'] as String;
-        final ref = linked
-            ? m['ref'] as String
-            : p.join(booksRoot, internalName!);
+        final ref =
+            linked ? m['ref'] as String : p.join(booksRoot, internalName!);
         final e = _Entry(
           book: Book.fromJson({...snap, 'folderRef': ref}),
           linked: linked,
@@ -568,10 +567,10 @@ class BookStore {
   }
 
   BookAccess _accessFor(StorageException x) => switch (x.kind) {
-    StorageErrorKind.permissionDenied => BookAccess.permissionDenied,
-    StorageErrorKind.notFound => BookAccess.missing,
-    _ => BookAccess.error,
-  };
+        StorageErrorKind.permissionDenied => BookAccess.permissionDenied,
+        StorageErrorKind.notFound => BookAccess.missing,
+        _ => BookAccess.error,
+      };
 
   Future<void> _purgeTrash() async {
     final items = await backend.list(trashRoot);
@@ -620,35 +619,35 @@ class BookStore {
   }
 
   _Entry _entry(String bookId) => _entries.firstWhere(
-    (e) => e.book.id == bookId,
-    orElse: () => throw StorageException(
-      StorageErrorKind.notFound,
-      'Unknown book: $bookId',
-    ),
-  );
+        (e) => e.book.id == bookId,
+        orElse: () => throw StorageException(
+          StorageErrorKind.notFound,
+          'Unknown book: $bookId',
+        ),
+      );
 
   Future<String> folderRefOf(String bookId) =>
       _lock.run(() async => _entry(bookId).ref);
 
   /// ok / permissionDenied / missing. Cheap; use before opening a linked book.
   Future<BookAccess> checkBook(String bookId) => _lock.run(() async {
-    final e = _entry(bookId);
-    try {
-      await backend.checkAccess(e.ref, write: true);
-      e.access = BookAccess.ok;
-    } on StorageException catch (x) {
-      e.access = _accessFor(x);
-    }
-    return e.access;
-  });
+        final e = _entry(bookId);
+        try {
+          await backend.checkAccess(e.ref, write: true);
+          e.access = BookAccess.ok;
+        } on StorageException catch (x) {
+          e.access = _accessFor(x);
+        }
+        return e.access;
+      });
 
   // ------------------------------------------------------------ metadata
 
   bool _looksLikeBook(List<StorageEntry> es) => es.any(
-    (f) =>
-        !f.isDirectory &&
-        (f.name == metaFileName || isSupportedPageFile(f.name)),
-  );
+        (f) =>
+            !f.isDirectory &&
+            (f.name == metaFileName || isSupportedPageFile(f.name)),
+      );
 
   String? _coverPathFor(_Entry e) {
     final n = e.coverName;
@@ -716,8 +715,8 @@ class BookStore {
 
     String? str(String k) =>
         j[k] is String && (j[k] as String).trim().isNotEmpty
-        ? (j[k] as String).trim()
-        : null;
+            ? (j[k] as String).trim()
+            : null;
     DateTime? opened;
     if (j['lastOpenedAt'] is String)
       opened = DateTime.tryParse(j['lastOpenedAt'] as String);
@@ -877,13 +876,12 @@ class BookStore {
       used.add(actual.toLowerCase());
       kept.add(pg);
     }
-    final fresh =
-        files.keys
-            .where(
-              (n) => isSupportedPageFile(n) && !used.contains(n.toLowerCase()),
-            )
-            .toList()
-          ..sort(comparePageFileNames);
+    final fresh = files.keys
+        .where(
+          (n) => isSupportedPageFile(n) && !used.contains(n.toLowerCase()),
+        )
+        .toList()
+      ..sort(comparePageFileNames);
     for (final n in fresh) {
       kept.add(
         _Page(
@@ -966,64 +964,64 @@ class BookStore {
   // ------------------------------------------------------------ book operations
 
   Future<Book> createBook(NewBookRequest request) => _lock.run(() async {
-    final title = request.title.trim();
-    if (title.isEmpty) {
-      throw const StorageException(
-        StorageErrorKind.invalidName,
-        'A title is required',
-      );
-    }
-    final taken = await _lowerNames(booksRoot);
-    final folderName = uniqueName(
-      sanitizeFileStem(title, fallback: 'Book'),
-      taken,
-    );
-    final ref = await backend.createFolder(booksRoot, folderName);
-    try {
-      final e = _Entry(
-        book: Book(
-          id: _uuid.v4(),
-          title: title,
-          subject: request.subject.trim().isEmpty
-              ? 'General'
-              : request.subject.trim(),
-          folderRef: ref,
-          cover: BookCoverRef(colorValue: request.coverColorValue),
-          pageCount: 1,
-        ),
-        linked: false,
-        internalName: folderName,
-      )..metaLoaded = true;
-      e.createdAt = _now();
-      e.coverName = await _importCover(ref, request.coverImagePath);
-      _applyCoverRef(e, request.coverColorValue);
-      final first = _Page(
-        id: _uuid.v4(),
-        fileName: buildPageFileName('Page', 1, 3),
-        heading: 'Page',
-      );
-      await backend.writeBytes(ref, first.fileName, Uint8List(0));
-      e.pages = [first];
-      await _saveMeta(e);
-      _entries.add(e);
-      try {
-        await _afterChange(e);
-      } catch (_) {
-        _entries.remove(e);
-        rethrow;
-      }
-      return e.book;
-    } catch (_) {
-      try {
-        await backend.deleteFolder(ref); // our own brand-new folder
-      } catch (_) {}
-      rethrow;
-    }
-  });
+        final title = request.title.trim();
+        if (title.isEmpty) {
+          throw const StorageException(
+            StorageErrorKind.invalidName,
+            'A title is required',
+          );
+        }
+        final taken = await _lowerNames(booksRoot);
+        final folderName = uniqueName(
+          sanitizeFileStem(title, fallback: 'Book'),
+          taken,
+        );
+        final ref = await backend.createFolder(booksRoot, folderName);
+        try {
+          final e = _Entry(
+            book: Book(
+              id: _uuid.v4(),
+              title: title,
+              subject: request.subject.trim().isEmpty
+                  ? 'General'
+                  : request.subject.trim(),
+              folderRef: ref,
+              cover: BookCoverRef(colorValue: request.coverColorValue),
+              pageCount: 1,
+            ),
+            linked: false,
+            internalName: folderName,
+          )..metaLoaded = true;
+          e.createdAt = _now();
+          e.coverName = await _importCover(ref, request.coverImagePath);
+          _applyCoverRef(e, request.coverColorValue);
+          final first = _Page(
+            id: _uuid.v4(),
+            fileName: buildPageFileName('Page', 1, 3),
+            heading: 'Page',
+          );
+          await backend.writeBytes(ref, first.fileName, Uint8List(0));
+          e.pages = [first];
+          await _saveMeta(e);
+          _entries.add(e);
+          try {
+            await _afterChange(e);
+          } catch (_) {
+            _entries.remove(e);
+            rethrow;
+          }
+          return e.book;
+        } catch (_) {
+          try {
+            await backend.deleteFolder(ref); // our own brand-new folder
+          } catch (_) {}
+          rethrow;
+        }
+      });
 
   Future<Set<String>> _lowerNames(String folderRef) async => {
-    for (final f in await backend.list(folderRef)) f.name.toLowerCase(),
-  };
+        for (final f in await backend.list(folderRef)) f.name.toLowerCase(),
+      };
 
   /// Copies a picked image into the book folder as cover[.N].<ext>. Returns
   /// the relative file name, or null if it could not be read.
@@ -1042,39 +1040,40 @@ class BookStore {
   }
 
   Future<void> updateBook(Book book) => _lock.run(() async {
-    final e = _entry(book.id);
-    if (!e.metaLoaded) await _sync(e);
-    final title = book.title.trim();
-    e.book = e.book.copyWith(
-      title: title.isEmpty ? null : title,
-      subject: book.subject.trim().isEmpty ? null : book.subject.trim(),
-      lastOpenedPage: book.lastOpenedPage < 1 ? 1 : book.lastOpenedPage,
-      lastOpenedAt: book.lastOpenedAt,
-      preferredReadingMode: book.preferredReadingMode,
-    );
-    final incoming = book.cover.imagePath;
-    if (incoming == null) {
-      e.coverName = null;
-    } else if (incoming != _coverPathFor(e)) {
-      final name = await _importCover(e.ref, incoming);
-      if (name != null) e.coverName = name; // failed import keeps the old cover
-    }
-    _applyCoverRef(e, book.cover.colorValue);
-    await _commit(e);
-    await _refreshCoverCache(e);
-  });
+        final e = _entry(book.id);
+        if (!e.metaLoaded) await _sync(e);
+        final title = book.title.trim();
+        e.book = e.book.copyWith(
+          title: title.isEmpty ? null : title,
+          subject: book.subject.trim().isEmpty ? null : book.subject.trim(),
+          lastOpenedPage: book.lastOpenedPage < 1 ? 1 : book.lastOpenedPage,
+          lastOpenedAt: book.lastOpenedAt,
+          preferredReadingMode: book.preferredReadingMode,
+        );
+        final incoming = book.cover.imagePath;
+        if (incoming == null) {
+          e.coverName = null;
+        } else if (incoming != _coverPathFor(e)) {
+          final name = await _importCover(e.ref, incoming);
+          if (name != null)
+            e.coverName = name; // failed import keeps the old cover
+        }
+        _applyCoverRef(e, book.cover.colorValue);
+        await _commit(e);
+        await _refreshCoverCache(e);
+      });
 
   Future<void> markOpened(String bookId, {int? page}) => _lock.run(() async {
-    final idx = _entries.indexWhere((x) => x.book.id == bookId);
-    if (idx < 0) return;
-    final e = _entries[idx];
-    e.book = e.book.copyWith(
-      lastOpenedAt: _now(),
-      lastOpenedPage: page == null ? null : (page < 1 ? 1 : page),
-    );
-    // Shelf info must work even if the folder permission was revoked.
-    await _commit(e, bestEffortMeta: true);
-  });
+        final idx = _entries.indexWhere((x) => x.book.id == bookId);
+        if (idx < 0) return;
+        final e = _entries[idx];
+        e.book = e.book.copyWith(
+          lastOpenedAt: _now(),
+          lastOpenedPage: page == null ? null : (page < 1 ? 1 : page),
+        );
+        // Shelf info must work even if the folder permission was revoked.
+        await _commit(e, bestEffortMeta: true);
+      });
 
   Future<FontSettings> getFontSettings(String bookId) =>
       _lock.run(() async => _entry(bookId).fonts);
@@ -1090,32 +1089,34 @@ class BookStore {
   /// Internal copies are moved to Trash/ (purged after 30 days). Linked
   /// folders are only unlinked: the user's files are never deleted.
   Future<void> deleteBook(String bookId) => _lock.run(() async {
-    final idx = _entries.indexWhere((x) => x.book.id == bookId);
-    if (idx < 0) return;
-    final e = _entries[idx];
-    if (!e.linked) {
-      try {
-        final stamp = _now().millisecondsSinceEpoch;
-        await backend.moveFolder(e.ref, trashRoot, '${e.internalName}-$stamp');
-      } on StorageException catch (x) {
-        if (x.kind != StorageErrorKind.notFound) rethrow; // already gone
-      }
-    }
-    _entries.removeAt(idx);
-    for (final pg in e.pages) {
-      _known.remove(pg.id);
-    }
-    await _persistRegistry();
-    _emit();
-    if (e.linked) {
-      final shared = _entries.any((o) => o.linked && o.ref.startsWith(e.ref));
-      if (!shared) {
-        try {
-          await onFolderReleased?.call(e.ref);
-        } catch (_) {}
-      }
-    }
-  });
+        final idx = _entries.indexWhere((x) => x.book.id == bookId);
+        if (idx < 0) return;
+        final e = _entries[idx];
+        if (!e.linked) {
+          try {
+            final stamp = _now().millisecondsSinceEpoch;
+            await backend.moveFolder(
+                e.ref, trashRoot, '${e.internalName}-$stamp');
+          } on StorageException catch (x) {
+            if (x.kind != StorageErrorKind.notFound) rethrow; // already gone
+          }
+        }
+        _entries.removeAt(idx);
+        for (final pg in e.pages) {
+          _known.remove(pg.id);
+        }
+        await _persistRegistry();
+        _emit();
+        if (e.linked) {
+          final shared =
+              _entries.any((o) => o.linked && o.ref.startsWith(e.ref));
+          if (!shared) {
+            try {
+              await onFolderReleased?.call(e.ref);
+            } catch (_) {}
+          }
+        }
+      });
 
   // ------------------------------------------------------------ import
 
@@ -1124,34 +1125,35 @@ class BookStore {
   Future<List<Book>> importFolder(
     String folderPath, {
     ImportMode mode = ImportMode.copy,
-  }) => _lock.run(() async {
-    await backend.checkAccess(folderPath, write: mode == ImportMode.link);
-    final top = await backend.list(folderPath);
-    if (_looksLikeBook(top)) return [await _importOne(folderPath, mode)];
+  }) =>
+      _lock.run(() async {
+        await backend.checkAccess(folderPath, write: mode == ImportMode.link);
+        final top = await backend.list(folderPath);
+        if (_looksLikeBook(top)) return [await _importOne(folderPath, mode)];
 
-    final books = <Book>[];
-    StorageException? firstError;
-    for (final d in top.where(
-      (d) => d.isDirectory && !d.name.startsWith('.'),
-    )) {
-      try {
-        if (_looksLikeBook(await backend.list(d.ref))) {
-          books.add(await _importOne(d.ref, mode));
+        final books = <Book>[];
+        StorageException? firstError;
+        for (final d in top.where(
+          (d) => d.isDirectory && !d.name.startsWith('.'),
+        )) {
+          try {
+            if (_looksLikeBook(await backend.list(d.ref))) {
+              books.add(await _importOne(d.ref, mode));
+            }
+          } on StorageException catch (x) {
+            firstError ??= x;
+          }
         }
-      } on StorageException catch (x) {
-        firstError ??= x;
-      }
-    }
-    if (books.isEmpty) {
-      throw firstError ??
-          StorageException(
-            StorageErrorKind.invalidData,
-            'No TXT pages found in this folder',
-            ref: folderPath,
-          );
-    }
-    return books;
-  });
+        if (books.isEmpty) {
+          throw firstError ??
+              StorageException(
+                StorageErrorKind.invalidData,
+                'No TXT pages found in this folder',
+                ref: folderPath,
+              );
+        }
+        return books;
+      });
 
   Future<Book> _importOne(String srcRef, ImportMode mode) async {
     if (mode == ImportMode.link) {
@@ -1170,8 +1172,7 @@ class BookStore {
     try {
       for (final f in await backend.list(srcRef)) {
         final lower = f.name.toLowerCase();
-        final copy =
-            !f.isDirectory &&
+        final copy = !f.isDirectory &&
             (f.name == metaFileName ||
                 isSupportedPageFile(f.name) ||
                 (!f.name.startsWith('.') &&
@@ -1204,35 +1205,36 @@ class BookStore {
   /// fills it (ZIP import) and then calls [adoptInternalFolder].
   Future<({String name, String ref})> createInternalFolder(
     String desiredName,
-  ) => _lock.run(() async {
-    final taken = await _lowerNames(booksRoot);
-    final name = uniqueName(
-      sanitizeFileStem(desiredName, fallback: 'Book'),
-      taken,
-    );
-    return (name: name, ref: await backend.createFolder(booksRoot, name));
-  });
+  ) =>
+      _lock.run(() async {
+        final taken = await _lowerNames(booksRoot);
+        final name = uniqueName(
+          sanitizeFileStem(desiredName, fallback: 'Book'),
+          taken,
+        );
+        return (name: name, ref: await backend.createFolder(booksRoot, name));
+      });
 
   Future<Book> adoptInternalFolder(String name) => _lock.run(() async {
-    final ref = p.join(booksRoot, name);
-    if (!_looksLikeBook(await backend.list(ref))) {
-      throw StorageException(
-        StorageErrorKind.invalidData,
-        'No TXT pages found',
-        ref: ref,
-      );
-    }
-    return _registerFolder(ref, linked: false, internalName: name);
-  });
+        final ref = p.join(booksRoot, name);
+        if (!_looksLikeBook(await backend.list(ref))) {
+          throw StorageException(
+            StorageErrorKind.invalidData,
+            'No TXT pages found',
+            ref: ref,
+          );
+        }
+        return _registerFolder(ref, linked: false, internalName: name);
+      });
 
   /// Removes a folder created by [createInternalFolder] after a failed fill.
   Future<void> discardInternalFolder(String name) => _lock.run(() async {
-    try {
-      await backend.deleteFolder(p.join(booksRoot, name));
-    } on StorageException {
-      // nothing more we can do
-    }
-  });
+        try {
+          await backend.deleteFolder(p.join(booksRoot, name));
+        } on StorageException {
+          // nothing more we can do
+        }
+      });
 
   /// Registers an existing folder as a book. A book id already present in the
   /// library (re-import of an export, copied folder) gets a fresh id.
@@ -1354,18 +1356,18 @@ class BookStore {
       });
 
   Future<List<PageInfo>> pageInfos(String bookId) => _lock.run(() async {
-    final e = _entry(bookId);
-    await _sync(e);
-    return [
-      for (var i = 0; i < e.pages.length; i++)
-        PageInfo(
-          id: e.pages[i].id,
-          number: i + 1,
-          fileName: e.pages[i].fileName,
-          heading: e.pages[i].heading,
-        ),
-    ];
-  });
+        final e = _entry(bookId);
+        await _sync(e);
+        return [
+          for (var i = 0; i < e.pages.length; i++)
+            PageInfo(
+              id: e.pages[i].id,
+              number: i + 1,
+              fileName: e.pages[i].fileName,
+              heading: e.pages[i].heading,
+            ),
+        ];
+      });
 
   /// Null when [pageNumber] is out of range.
   Future<BookPage?> readPage(String bookId, int pageNumber) =>
@@ -1392,28 +1394,29 @@ class BookStore {
     String bookId, {
     int? atNumber,
     String? heading,
-  }) => _lock.run(() async {
-    final e = _entry(bookId);
-    await _sync(e);
-    final n = e.pages.length;
-    final pos = (atNumber ?? n + 1).clamp(1, n + 1).toInt();
-    final h = (heading ?? '').trim();
-    final pg = _Page(
-      id: _uuid.v4(),
-      fileName: '',
-      heading: h.isEmpty ? 'Page' : h,
-    );
-    pg.fileName = _tmpName(pg.id);
-    await backend.writeBytes(e.ref, pg.fileName, Uint8List(0)); // exclusive
-    e.pages.insert(pos - 1, pg);
-    try {
-      await _normalize(e);
-    } catch (_) {
-      e.pages.remove(pg);
-      rethrow;
-    }
-    return BookPage(bookId: bookId, number: pos, fileName: pg.fileName);
-  });
+  }) =>
+      _lock.run(() async {
+        final e = _entry(bookId);
+        await _sync(e);
+        final n = e.pages.length;
+        final pos = (atNumber ?? n + 1).clamp(1, n + 1).toInt();
+        final h = (heading ?? '').trim();
+        final pg = _Page(
+          id: _uuid.v4(),
+          fileName: '',
+          heading: h.isEmpty ? 'Page' : h,
+        );
+        pg.fileName = _tmpName(pg.id);
+        await backend.writeBytes(e.ref, pg.fileName, Uint8List(0)); // exclusive
+        e.pages.insert(pos - 1, pg);
+        try {
+          await _normalize(e);
+        } catch (_) {
+          e.pages.remove(pg);
+          rethrow;
+        }
+        return BookPage(bookId: bookId, number: pos, fileName: pg.fileName);
+      });
 
   /// Saves [page].content to the file named [page.fileName].
   ///
@@ -1423,68 +1426,72 @@ class BookStore {
   Future<void> writePage(
     BookPage page, {
     bool force = false,
-  }) => _lock.run(() async {
-    final e = _entry(page.bookId);
-    if (!e.metaLoaded) await _sync(e);
-    final pg = e.pages.where((x) => x.fileName == page.fileName).firstOrNull;
-    if (pg == null) {
-      throw StorageException(
-        StorageErrorKind.conflict,
-        'Page "${page.fileName}" was renamed, renumbered or removed. Reload the book.',
-        ref: e.ref,
-      );
-    }
-    final st = await backend.stat(e.ref, pg.fileName);
-    final known = _known[pg.id];
-    final mtime = st?.modified?.millisecondsSinceEpoch;
-    if (!force && known != null && mtime != null && mtime != known) {
-      throw StorageException(
-        StorageErrorKind.conflict,
-        'Page "${pg.fileName}" was changed outside BookNotes since you opened it.',
-        ref: e.ref,
-      );
-    }
-    final written = await backend.writeBytes(
-      e.ref,
-      pg.fileName,
-      encodeText(page.content),
-      overwrite: true,
-    );
-    _known[pg.id] = written.modified?.millisecondsSinceEpoch;
-  });
+  }) =>
+      _lock.run(() async {
+        final e = _entry(page.bookId);
+        if (!e.metaLoaded) await _sync(e);
+        final pg =
+            e.pages.where((x) => x.fileName == page.fileName).firstOrNull;
+        if (pg == null) {
+          throw StorageException(
+            StorageErrorKind.conflict,
+            'Page "${page.fileName}" was renamed, renumbered or removed. Reload the book.',
+            ref: e.ref,
+          );
+        }
+        final st = await backend.stat(e.ref, pg.fileName);
+        final known = _known[pg.id];
+        final mtime = st?.modified?.millisecondsSinceEpoch;
+        if (!force && known != null && mtime != null && mtime != known) {
+          throw StorageException(
+            StorageErrorKind.conflict,
+            'Page "${pg.fileName}" was changed outside BookNotes since you opened it.',
+            ref: e.ref,
+          );
+        }
+        final written = await backend.writeBytes(
+          e.ref,
+          pg.fileName,
+          encodeText(page.content),
+          overwrite: true,
+        );
+        _known[pg.id] = written.modified?.millisecondsSinceEpoch;
+      });
 
   Future<void> deletePage(String bookId, int pageNumber) => _lock.run(() async {
-    final e = _entry(bookId);
-    await _sync(e);
-    if (pageNumber < 1 || pageNumber > e.pages.length) {
-      throw const StorageException(StorageErrorKind.notFound, 'No such page');
-    }
-    final pg = e.pages[pageNumber - 1];
-    try {
-      await backend.delete(
-        e.ref,
-        pg.fileName,
-      ); // file first: a crash only drops the entry
-    } on StorageException catch (x) {
-      if (x.kind != StorageErrorKind.notFound) rethrow;
-    }
-    e.pages.removeAt(pageNumber - 1);
-    _known.remove(pg.id);
-    await _normalize(e);
-  });
+        final e = _entry(bookId);
+        await _sync(e);
+        if (pageNumber < 1 || pageNumber > e.pages.length) {
+          throw const StorageException(
+              StorageErrorKind.notFound, 'No such page');
+        }
+        final pg = e.pages[pageNumber - 1];
+        try {
+          await backend.delete(
+            e.ref,
+            pg.fileName,
+          ); // file first: a crash only drops the entry
+        } on StorageException catch (x) {
+          if (x.kind != StorageErrorKind.notFound) rethrow;
+        }
+        e.pages.removeAt(pageNumber - 1);
+        _known.remove(pg.id);
+        await _normalize(e);
+      });
 
   /// Moves a page to a new 1-based position and renumbers the files.
   Future<void> movePage(String bookId, int from, int to) => _lock.run(() async {
-    final e = _entry(bookId);
-    await _sync(e);
-    final n = e.pages.length;
-    if (from < 1 || from > n) {
-      throw const StorageException(StorageErrorKind.notFound, 'No such page');
-    }
-    final pg = e.pages.removeAt(from - 1);
-    e.pages.insert(to.clamp(1, n).toInt() - 1, pg);
-    await _normalize(e);
-  });
+        final e = _entry(bookId);
+        await _sync(e);
+        final n = e.pages.length;
+        if (from < 1 || from > n) {
+          throw const StorageException(
+              StorageErrorKind.notFound, 'No such page');
+        }
+        final pg = e.pages.removeAt(from - 1);
+        e.pages.insert(to.clamp(1, n).toInt() - 1, pg);
+        await _normalize(e);
+      });
 
   /// Changes a page heading and its file name. Never overwrites: a clash is
   /// resolved with " (2)". Returns the page with its NEW fileName (no content).
@@ -1492,37 +1499,40 @@ class BookStore {
     String bookId,
     int pageNumber,
     String newHeading,
-  ) => _lock.run(() async {
-    final e = _entry(bookId);
-    await _sync(e);
-    if (pageNumber < 1 || pageNumber > e.pages.length) {
-      throw const StorageException(StorageErrorKind.notFound, 'No such page');
-    }
-    final heading = newHeading.trim();
-    if (heading.isEmpty) {
-      throw const StorageException(
-        StorageErrorKind.invalidName,
-        'A heading is required',
-      );
-    }
-    final pg = e.pages[pageNumber - 1];
-    final width = _width(e);
-    final taken = {
-      for (final n in e.stats.keys)
-        if (n != pg.fileName) n.toLowerCase(),
-    };
-    var target = buildPageFileName(heading, pageNumber, width);
-    for (var dup = 2; taken.contains(target.toLowerCase()); dup++) {
-      target = buildPageFileName(heading, pageNumber, width, dup: dup);
-    }
-    if (target != pg.fileName) {
-      await backend.rename(e.ref, pg.fileName, target);
-      pg.fileName = target;
-    }
-    pg.heading = heading;
-    await _commit(e);
-    return BookPage(bookId: bookId, number: pageNumber, fileName: pg.fileName);
-  });
+  ) =>
+      _lock.run(() async {
+        final e = _entry(bookId);
+        await _sync(e);
+        if (pageNumber < 1 || pageNumber > e.pages.length) {
+          throw const StorageException(
+              StorageErrorKind.notFound, 'No such page');
+        }
+        final heading = newHeading.trim();
+        if (heading.isEmpty) {
+          throw const StorageException(
+            StorageErrorKind.invalidName,
+            'A heading is required',
+          );
+        }
+        final pg = e.pages[pageNumber - 1];
+        final width = _width(e);
+        final taken = {
+          for (final n in e.stats.keys)
+            if (n != pg.fileName) n.toLowerCase(),
+        };
+        var target = buildPageFileName(heading, pageNumber, width);
+        for (var dup = 2; taken.contains(target.toLowerCase()); dup++) {
+          target = buildPageFileName(heading, pageNumber, width, dup: dup);
+        }
+        if (target != pg.fileName) {
+          await backend.rename(e.ref, pg.fileName, target);
+          pg.fileName = target;
+        }
+        pg.heading = heading;
+        await _commit(e);
+        return BookPage(
+            bookId: bookId, number: pageNumber, fileName: pg.fileName);
+      });
 
   // ------------------------------------------------------------ export support
 

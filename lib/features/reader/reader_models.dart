@@ -60,19 +60,20 @@ class TypographySettings {
     TextAlign? align,
     Color? color,
     bool clearColor = false,
-  }) => TypographySettings(
-    family: family ?? this.family,
-    size: (size ?? this.size).clamp(minSize, maxSize).toDouble(),
-    weight: weight ?? this.weight,
-    lineHeight: (lineHeight ?? this.lineHeight)
-        .clamp(minLineHeight, maxLineHeight)
-        .toDouble(),
-    paragraphSpacing: (paragraphSpacing ?? this.paragraphSpacing)
-        .clamp(0, maxParagraphSpacing)
-        .toDouble(),
-    align: align ?? this.align,
-    color: clearColor ? null : (color ?? this.color),
-  );
+  }) =>
+      TypographySettings(
+        family: family ?? this.family,
+        size: (size ?? this.size).clamp(minSize, maxSize).toDouble(),
+        weight: weight ?? this.weight,
+        lineHeight: (lineHeight ?? this.lineHeight)
+            .clamp(minLineHeight, maxLineHeight)
+            .toDouble(),
+        paragraphSpacing: (paragraphSpacing ?? this.paragraphSpacing)
+            .clamp(0, maxParagraphSpacing)
+            .toDouble(),
+        align: align ?? this.align,
+        color: clearColor ? null : (color ?? this.color),
+      );
 
   FontWeight get fontWeight =>
       FontWeight.values[((weight.clamp(100, 900)) ~/ 100) - 1];
@@ -90,30 +91,30 @@ class TypographySettings {
   }
 
   FontSettings toStored() => FontSettings(
-    family: family,
-    size: size,
-    lineHeight: lineHeight,
-    weight: weight,
-    paragraphSpacing: paragraphSpacing,
-    align: align.name == 'start' || align.name == 'end' ? 'left' : align.name,
-    // ignore: deprecated_member_use
-    colorValue: color?.value,
-  );
+        family: family,
+        size: size,
+        lineHeight: lineHeight,
+        weight: weight,
+        paragraphSpacing: paragraphSpacing,
+        align:
+            align.name == 'start' || align.name == 'end' ? 'left' : align.name,
+        // ignore: deprecated_member_use
+        colorValue: color?.value,
+      );
 
   factory TypographySettings.fromStored(FontSettings f) => TypographySettings(
-    family: f.family ?? 'Georgia',
-    size: f.size.clamp(minSize, maxSize).toDouble(),
-    weight: f.weight.clamp(100, 900),
-    lineHeight: f.lineHeight.clamp(minLineHeight, maxLineHeight).toDouble(),
-    paragraphSpacing: f.paragraphSpacing
-        .clamp(0, maxParagraphSpacing)
-        .toDouble(),
-    align: TextAlign.values.firstWhere(
-      (a) => a.name == f.align,
-      orElse: () => TextAlign.left,
-    ),
-    color: f.colorValue == null ? null : Color(f.colorValue!),
-  );
+        family: f.family ?? 'Georgia',
+        size: f.size.clamp(minSize, maxSize).toDouble(),
+        weight: f.weight.clamp(100, 900),
+        lineHeight: f.lineHeight.clamp(minLineHeight, maxLineHeight).toDouble(),
+        paragraphSpacing:
+            f.paragraphSpacing.clamp(0, maxParagraphSpacing).toDouble(),
+        align: TextAlign.values.firstWhere(
+          (a) => a.name == f.align,
+          orElse: () => TextAlign.left,
+        ),
+        color: f.colorValue == null ? null : Color(f.colorValue!),
+      );
 
   @override
   bool operator ==(Object o) =>
@@ -128,14 +129,14 @@ class TypographySettings {
 
   @override
   int get hashCode => Object.hash(
-    family,
-    size,
-    weight,
-    lineHeight,
-    paragraphSpacing,
-    align,
-    color,
-  );
+        family,
+        size,
+        weight,
+        lineHeight,
+        paragraphSpacing,
+        align,
+        color,
+      );
 }
 
 /// Which 1-based page numbers are visible at once. [right] is null for an
@@ -167,8 +168,8 @@ class SpreadMath {
   /// Page that anchors the visible spread for [current].
   static int anchorFor(int current, ReaderLayout layout) =>
       layout == ReaderLayout.folded
-      ? current
-      : (current.isOdd ? current : current - 1);
+          ? current
+          : (current.isOdd ? current : current - 1);
 
   static Spread spreadFor(int current, int pageCount, ReaderLayout layout) {
     if (layout == ReaderLayout.folded) return Spread(current);

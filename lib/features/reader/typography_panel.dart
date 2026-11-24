@@ -10,19 +10,20 @@ import 'reader_models.dart';
 Future<void> showTypographySheet(
   BuildContext context,
   ReaderController controller,
-) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  showDragHandle: true,
-  builder: (_) => ConstrainedBox(
-    constraints: BoxConstraints(
-      maxHeight: MediaQuery.of(context).size.height * 0.85,
-    ),
-    child: SingleChildScrollView(
-      child: TypographyPanel(controller: controller),
-    ),
-  ),
-);
+) =>
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        child: SingleChildScrollView(
+          child: TypographyPanel(controller: controller),
+        ),
+      ),
+    );
 
 class TypographyPanel extends StatelessWidget {
   const TypographyPanel({super.key, required this.controller});
@@ -46,14 +47,14 @@ class TypographyPanel extends StatelessWidget {
         void set(TypographySettings n) => controller.setTypography(n);
 
         Widget row(String label, Widget child) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              SizedBox(width: 120, child: Text(label)),
-              Expanded(child: child),
-            ],
-          ),
-        );
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  SizedBox(width: 120, child: Text(label)),
+                  Expanded(child: child),
+                ],
+              ),
+            );
 
         Widget slider(
           double v,
@@ -62,20 +63,22 @@ class TypographyPanel extends StatelessWidget {
           int? div,
           String shown,
           ValueChanged<double> on,
-        ) => Row(
-          children: [
-            Expanded(
-              child: Slider(
-                value: v.clamp(min, max).toDouble(),
-                min: min,
-                max: max,
-                divisions: div,
-                onChanged: on,
-              ),
-            ),
-            SizedBox(width: 44, child: Text(shown, textAlign: TextAlign.end)),
-          ],
-        );
+        ) =>
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: v.clamp(min, max).toDouble(),
+                    min: min,
+                    max: max,
+                    divisions: div,
+                    onChanged: on,
+                  ),
+                ),
+                SizedBox(
+                    width: 44, child: Text(shown, textAlign: TextAlign.end)),
+              ],
+            );
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -86,9 +89,8 @@ class TypographyPanel extends StatelessWidget {
                 'Font',
                 DropdownButton<String>(
                   isExpanded: true,
-                  value: readerFontFamilies.contains(t.family)
-                      ? t.family
-                      : null,
+                  value:
+                      readerFontFamilies.contains(t.family) ? t.family : null,
                   items: [
                     for (final f in readerFontFamilies)
                       DropdownMenuItem(

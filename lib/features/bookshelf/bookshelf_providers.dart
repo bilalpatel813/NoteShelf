@@ -78,12 +78,13 @@ class ShelfState {
     BookSort? sort,
     bool? ascending,
     Set<String>? selectedIds,
-  }) => ShelfState(
-    query: query ?? this.query,
-    sort: sort ?? this.sort,
-    ascending: ascending ?? this.ascending,
-    selectedIds: selectedIds ?? this.selectedIds,
-  );
+  }) =>
+      ShelfState(
+        query: query ?? this.query,
+        sort: sort ?? this.sort,
+        ascending: ascending ?? this.ascending,
+        selectedIds: selectedIds ?? this.selectedIds,
+      );
 }
 
 class ShelfController extends Notifier<ShelfState> {
@@ -134,16 +135,16 @@ final visibleBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
         .toList();
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
     int cmp(Book a, Book b) => switch (shelf.sort) {
-      BookSort.recent => (a.lastOpenedAt ?? epoch).compareTo(
-        b.lastOpenedAt ?? epoch,
-      ),
-      BookSort.title => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-      BookSort.subject =>
-        a.subject.toLowerCase() == b.subject.toLowerCase()
-            ? a.title.toLowerCase().compareTo(b.title.toLowerCase())
-            : a.subject.toLowerCase().compareTo(b.subject.toLowerCase()),
-      BookSort.pages => a.pageCount.compareTo(b.pageCount),
-    };
+          BookSort.recent => (a.lastOpenedAt ?? epoch).compareTo(
+              b.lastOpenedAt ?? epoch,
+            ),
+          BookSort.title =>
+            a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          BookSort.subject => a.subject.toLowerCase() == b.subject.toLowerCase()
+              ? a.title.toLowerCase().compareTo(b.title.toLowerCase())
+              : a.subject.toLowerCase().compareTo(b.subject.toLowerCase()),
+          BookSort.pages => a.pageCount.compareTo(b.pageCount),
+        };
     list.sort((a, b) => shelf.ascending ? cmp(a, b) : cmp(b, a));
     return list;
   });

@@ -39,24 +39,24 @@ class Affine2 {
 
   /// this(other(p)): [other] is applied first.
   Affine2 after(Affine2 o) => Affine2(
-    a * o.a + c * o.b,
-    b * o.a + d * o.b,
-    a * o.c + c * o.d,
-    b * o.c + d * o.d,
-    a * o.e + c * o.f + e,
-    b * o.e + d * o.f + f,
-  );
+        a * o.a + c * o.b,
+        b * o.a + d * o.b,
+        a * o.c + c * o.d,
+        b * o.c + d * o.d,
+        a * o.e + c * o.f + e,
+        b * o.e + d * o.f + f,
+      );
 
   Offset apply(Offset p) =>
       Offset(a * p.dx + c * p.dy + e, b * p.dx + d * p.dy + f);
 
   /// Column-major 4x4 for `Transform(transform: Matrix4.fromList(...))`.
   List<double> toColumnMajor4() => <double>[
-    a, b, 0, 0, //
-    c, d, 0, 0,
-    0, 0, 1, 0,
-    e, f, 0, 1,
-  ];
+        a, b, 0, 0, //
+        c, d, 0, 0,
+        0, 0, 1, 0,
+        e, f, 0, 1,
+      ];
 }
 
 /// Sutherland-Hodgman clip of a convex/concave polygon against one half-plane
@@ -162,9 +162,9 @@ class CurlFrame {
 
   Rect get bounds => Offset.zero & size;
   Offset get foldMid => Offset(
-    (foldTop.dx + foldBottom.dx) / 2,
-    (foldTop.dy + foldBottom.dy) / 2,
-  );
+        (foldTop.dx + foldBottom.dx) / 2,
+        (foldTop.dy + foldBottom.dy) / 2,
+      );
   Offset get foldDir {
     final d = foldBottom - foldTop;
     final len = d.distance;
@@ -187,7 +187,8 @@ class PageCurlGeometry {
     Size size, {
     required bool unfolded,
     required int direction,
-  }) => unfolded ? size.width / 2 : (direction > 0 ? 0.0 : size.width);
+  }) =>
+      unfolded ? size.width / 2 : (direction > 0 ? 0.0 : size.width);
 
   /// The page being turned: the right half for a forward turn and the left half
   /// for a backward turn in two-page mode, the whole area when folded.

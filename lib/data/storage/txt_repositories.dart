@@ -44,7 +44,8 @@ class TxtBookRepository implements BookRepository {
   Future<List<Book>> importFolder(
     String folderPath, {
     ImportMode mode = ImportMode.copy,
-  }) => store.importFolder(folderPath, mode: mode);
+  }) =>
+      store.importFolder(folderPath, mode: mode);
 
   BookTransfer get transfer => BookTransfer(store);
 }
@@ -69,7 +70,8 @@ class TxtPageRepository implements PageRepository {
     String bookId, {
     int? atNumber,
     String? heading,
-  }) => store.createPage(bookId, atNumber: atNumber, heading: heading);
+  }) =>
+      store.createPage(bookId, atNumber: atNumber, heading: heading);
 
   /// Throws StorageException(conflict) if the file changed outside the app or
   /// the page was renumbered since it was read. [force] overrides the first.
@@ -85,8 +87,8 @@ class TxtPageRepository implements PageRepository {
 /// Everything wired up for main(): `final storage = await TxtStorage.open();`
 class TxtStorage {
   TxtStorage._(this.platform, this.store)
-    : books = TxtBookRepository(store, platform: platform),
-      pages = TxtPageRepository(store);
+      : books = TxtBookRepository(store, platform: platform),
+        pages = TxtPageRepository(store);
 
   final StoragePlatform platform;
   final BookStore store;

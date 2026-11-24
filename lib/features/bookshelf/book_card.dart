@@ -245,79 +245,78 @@ class BookCoverView extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = Color(book.cover.colorValue);
     final hsl = HSLColor.fromColor(base);
-    final dark = hsl
-        .withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0))
-        .toColor();
-    final light = hsl
-        .withLightness((hsl.lightness + 0.07).clamp(0.0, 1.0))
-        .toColor();
+    final dark =
+        hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
+    final light =
+        hsl.withLightness((hsl.lightness + 0.07).clamp(0.0, 1.0)).toColor();
     const gold = Color(0xFFE8CF94);
 
     Widget generated() => DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [dark, light, base]),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          width * 0.16,
-          width * 0.12,
-          width * 0.08,
-          width * 0.1,
-        ),
-        child: DecoratedBox(
           decoration: BoxDecoration(
-            border: Border.all(color: gold.withValues(alpha: 0.55), width: 1.2),
+            gradient: LinearGradient(colors: [dark, light, base]),
           ),
           child: Padding(
-            padding: EdgeInsets.all(width * 0.06),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  book.title,
-                  textAlign: TextAlign.center,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamilyFallback: AppTheme.serifFallback,
-                    fontWeight: FontWeight.w700,
-                    fontSize: width * 0.105,
-                    height: 1.2,
-                    color: gold,
-                    shadows: const [
-                      Shadow(
-                        color: Colors.black54,
-                        offset: Offset(0, 1),
-                        blurRadius: 1,
+            padding: EdgeInsets.fromLTRB(
+              width * 0.16,
+              width * 0.12,
+              width * 0.08,
+              width * 0.1,
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border:
+                    Border.all(color: gold.withValues(alpha: 0.55), width: 1.2),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(width * 0.06),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      book.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamilyFallback: AppTheme.serifFallback,
+                        fontWeight: FontWeight.w700,
+                        fontSize: width * 0.105,
+                        height: 1.2,
+                        color: gold,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black54,
+                            offset: Offset(0, 1),
+                            blurRadius: 1,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: width * 0.06),
+                    Container(
+                      width: width * 0.3,
+                      height: 1.2,
+                      color: gold.withValues(alpha: 0.6),
+                    ),
+                    SizedBox(height: width * 0.05),
+                    Text(
+                      book.subject,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamilyFallback: AppTheme.serifFallback,
+                        fontStyle: FontStyle.italic,
+                        fontSize: width * 0.065,
+                        color: gold.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: width * 0.06),
-                Container(
-                  width: width * 0.3,
-                  height: 1.2,
-                  color: gold.withValues(alpha: 0.6),
-                ),
-                SizedBox(height: width * 0.05),
-                Text(
-                  book.subject,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamilyFallback: AppTheme.serifFallback,
-                    fontStyle: FontStyle.italic,
-                    fontSize: width * 0.065,
-                    color: gold.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        );
 
     final imagePath = book.cover.imagePath;
     final face = imagePath == null

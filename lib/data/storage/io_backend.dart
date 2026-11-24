@@ -180,23 +180,24 @@ class IoBackend implements StorageBackend {
 
   @override
   Future<StorageEntry?> stat(String folderRef, String name) => _guard(
-    folderRef,
-    () async {
-      validateEntryName(name);
-      final path = p.join(folderRef, name);
-      if (await FileSystemEntity.type(path) == FileSystemEntityType.notFound) {
-        return null;
-      }
-      final st = await FileStat.stat(path);
-      return StorageEntry(
-        name: name,
-        ref: path,
-        isDirectory: st.type == FileSystemEntityType.directory,
-        size: st.size,
-        modified: st.modified,
+        folderRef,
+        () async {
+          validateEntryName(name);
+          final path = p.join(folderRef, name);
+          if (await FileSystemEntity.type(path) ==
+              FileSystemEntityType.notFound) {
+            return null;
+          }
+          final st = await FileStat.stat(path);
+          return StorageEntry(
+            name: name,
+            ref: path,
+            isDirectory: st.type == FileSystemEntityType.directory,
+            size: st.size,
+            modified: st.modified,
+          );
+        },
       );
-    },
-  );
 
   @override
   Future<Uint8List> readBytes(String folderRef, String name) =>
@@ -211,48 +212,49 @@ class IoBackend implements StorageBackend {
     String name,
     Uint8List bytes, {
     bool overwrite = false,
-  }) => _guard(folderRef, () async {
-    validateEntryName(name);
-    final path = p.join(folderRef, name);
-    if (!overwrite) {
-      final f = File(path);
-      await f.create(exclusive: true); // PathExistsException if present
-      try {
-        await f.writeAsBytes(bytes, flush: true);
-      } catch (_) {
-        try {
-          await f.delete();
-        } catch (_) {}
-        rethrow;
-      }
-    } else {
-      // Write beside the target, then replace it: a crash never leaves a
-      // half-written page.
-      final tmp = File('$path.bntmp');
-      await tmp.writeAsBytes(bytes, flush: true);
-      try {
-        await _replace(tmp, path);
-      } catch (_) {
-        try {
-          await tmp.delete();
-        } catch (_) {}
-        rethrow;
-      }
-    }
-    final st = await FileStat.stat(path);
-    return StorageEntry(
-      name: name,
-      ref: path,
-      isDirectory: false,
-      size: st.size,
-      modified: st.modified,
-    );
-  });
+  }) =>
+      _guard(folderRef, () async {
+        validateEntryName(name);
+        final path = p.join(folderRef, name);
+        if (!overwrite) {
+          final f = File(path);
+          await f.create(exclusive: true); // PathExistsException if present
+          try {
+            await f.writeAsBytes(bytes, flush: true);
+          } catch (_) {
+            try {
+              await f.delete();
+            } catch (_) {}
+            rethrow;
+          }
+        } else {
+          // Write beside the target, then replace it: a crash never leaves a
+          // half-written page.
+          final tmp = File('$path.bntmp');
+          await tmp.writeAsBytes(bytes, flush: true);
+          try {
+            await _replace(tmp, path);
+          } catch (_) {
+            try {
+              await tmp.delete();
+            } catch (_) {}
+            rethrow;
+          }
+        }
+        final st = await FileStat.stat(path);
+        return StorageEntry(
+          name: name,
+          ref: path,
+          isDirectory: false,
+          size: st.size,
+          modified: st.modified,
+        );
+      });
 
   /// File.rename replaces an existing file. On Windows antivirus/indexers can
   /// hold the target briefly, so retry a few times.
   Future<void> _replace(File tmp, String path) async {
-    for (var attempt = 0; ; attempt++) {
+    for (var attempt = 0;; attempt++) {
       try {
         await tmp.rename(path);
         return;
@@ -297,44 +299,46 @@ class IoBackend implements StorageBackend {
 
   @override
   Future<String> createFolder(String parentRef, String name) => _guard(
-    parentRef,
-    () async {
-      validateEntryName(name);
-      final path = p.join(parentRef, name);
-      if (await FileSystemEntity.type(path) != FileSystemEntityType.notFound) {
-        throw StorageException(
-          StorageErrorKind.alreadyExists,
-          '"$name" already exists',
-          ref: path,
-        );
-      }
-      await Directory(path).create();
-      return path;
-    },
-  );
+        parentRef,
+        () async {
+          validateEntryName(name);
+          final path = p.join(parentRef, name);
+          if (await FileSystemEntity.type(path) !=
+              FileSystemEntityType.notFound) {
+            throw StorageException(
+              StorageErrorKind.alreadyExists,
+              '"$name" already exists',
+              ref: path,
+            );
+          }
+          await Directory(path).create();
+          return path;
+        },
+      );
 
   @override
   Future<void> moveFolder(
     String folderRef,
     String destParentRef,
     String destName,
-  ) => _guard(folderRef, () async {
-    validateEntryName(destName);
-    final dst = p.join(destParentRef, destName);
-    if (await FileSystemEntity.type(dst) != FileSystemEntityType.notFound) {
-      throw StorageException(
-        StorageErrorKind.alreadyExists,
-        '"$destName" already exists',
-        ref: dst,
-      );
-    }
-    await Directory(folderRef).rename(dst);
-  });
+  ) =>
+      _guard(folderRef, () async {
+        validateEntryName(destName);
+        final dst = p.join(destParentRef, destName);
+        if (await FileSystemEntity.type(dst) != FileSystemEntityType.notFound) {
+          throw StorageException(
+            StorageErrorKind.alreadyExists,
+            '"$destName" already exists',
+            ref: dst,
+          );
+        }
+        await Directory(folderRef).rename(dst);
+      });
 
   @override
   Future<void> deleteFolder(String folderRef) => _guard(folderRef, () async {
-    await Directory(folderRef).delete(recursive: true);
-  });
+        await Directory(folderRef).delete(recursive: true);
+      });
 
   @override
   Future<Uint8List> readDocument(String docRef) =>

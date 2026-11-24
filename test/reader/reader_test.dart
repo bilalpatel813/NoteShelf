@@ -36,25 +36,25 @@ class FakeStorage implements ReaderStorage {
 
   @override
   Future<List<PageInfo>> pageInfos(String bookId) async => [
-    for (var i = 0; i < pages.length; i++)
-      PageInfo(
-        id: pages[i].id,
-        number: i + 1,
-        fileName: _name(i),
-        heading: pages[i].heading,
-      ),
-  ];
+        for (var i = 0; i < pages.length; i++)
+          PageInfo(
+            id: pages[i].id,
+            number: i + 1,
+            fileName: _name(i),
+            heading: pages[i].heading,
+          ),
+      ];
 
   @override
   Future<BookPage?> readPage(String bookId, int n) async =>
       n < 1 || n > pages.length
-      ? null
-      : BookPage(
-          bookId: bookId,
-          number: n,
-          fileName: _name(n - 1),
-          content: pages[n - 1].text,
-        );
+          ? null
+          : BookPage(
+              bookId: bookId,
+              number: n,
+              fileName: _name(n - 1),
+              content: pages[n - 1].text,
+            );
 
   @override
   Future<BookPage> createPage(String bookId, {int? atNumber}) async {
@@ -96,13 +96,13 @@ class FakeStorage implements ReaderStorage {
 }
 
 Book _book({int last = 1, ReadingMode mode = ReadingMode.singlePage}) => Book(
-  id: 'b1',
-  title: 'Physics',
-  subject: 'Science',
-  folderRef: '/x',
-  lastOpenedPage: last,
-  preferredReadingMode: mode,
-);
+      id: 'b1',
+      title: 'Physics',
+      subject: 'Science',
+      folderRef: '/x',
+      lastOpenedPage: last,
+      preferredReadingMode: mode,
+    );
 
 Future<ReaderController> _open(
   FakeStorage s, {

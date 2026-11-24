@@ -13,7 +13,7 @@ import 'storage_backend.dart';
 
 class SafBackend implements StorageBackend {
   SafBackend([MethodChannel? channel])
-    : _ch = channel ?? const MethodChannel('com.booknotes/saf');
+      : _ch = channel ?? const MethodChannel('com.booknotes/saf');
 
   final MethodChannel _ch;
 
@@ -108,10 +108,14 @@ class SafBackend implements StorageBackend {
   Future<String?> pickCreateDocument(
     String suggestedName,
     String mimeType,
-  ) async => await _call('pickCreateDocument', {
-    'name': suggestedName,
-    'mime': mimeType,
-  }, 'picker') as String?;
+  ) async =>
+      await _call(
+          'pickCreateDocument',
+          {
+            'name': suggestedName,
+            'mime': mimeType,
+          },
+          'picker') as String?;
 
   Future<String?> pickOpenDocument(List<String> mimeTypes) async =>
       await _call('pickOpenDocument', {'mimes': mimeTypes}, 'picker')
@@ -142,10 +146,13 @@ class SafBackend implements StorageBackend {
   @override
   Future<StorageEntry?> stat(String folderRef, String name) async {
     validateEntryName(name);
-    final raw = await _call('stat', {
-      'ref': folderRef,
-      'name': name,
-    }, folderRef);
+    final raw = await _call(
+        'stat',
+        {
+          'ref': folderRef,
+          'name': name,
+        },
+        folderRef);
     return raw == null ? null : _entry(raw);
   }
 
@@ -164,12 +171,15 @@ class SafBackend implements StorageBackend {
     bool overwrite = false,
   }) async {
     validateEntryName(name);
-    final raw = await _call('writeBytes', {
-      'ref': folderRef,
-      'name': name,
-      'bytes': bytes,
-      'overwrite': overwrite,
-    }, folderRef);
+    final raw = await _call(
+        'writeBytes',
+        {
+          'ref': folderRef,
+          'name': name,
+          'bytes': bytes,
+          'overwrite': overwrite,
+        },
+        folderRef);
     return _entry(raw);
   }
 
@@ -183,20 +193,26 @@ class SafBackend implements StorageBackend {
   Future<void> rename(String folderRef, String name, String newName) async {
     validateEntryName(name);
     validateEntryName(newName);
-    await _call('rename', {
-      'ref': folderRef,
-      'name': name,
-      'newName': newName,
-    }, folderRef);
+    await _call(
+        'rename',
+        {
+          'ref': folderRef,
+          'name': name,
+          'newName': newName,
+        },
+        folderRef);
   }
 
   @override
   Future<String> createFolder(String parentRef, String name) async {
     validateEntryName(name);
-    return await _call('createFolder', {
-      'ref': parentRef,
-      'name': name,
-    }, parentRef) as String;
+    return await _call(
+        'createFolder',
+        {
+          'ref': parentRef,
+          'name': name,
+        },
+        parentRef) as String;
   }
 
   @override
@@ -204,10 +220,11 @@ class SafBackend implements StorageBackend {
     String folderRef,
     String destParentRef,
     String destName,
-  ) => throw const StorageException(
-    StorageErrorKind.unsupported,
-    'Moving folders is not supported over SAF',
-  );
+  ) =>
+      throw const StorageException(
+        StorageErrorKind.unsupported,
+        'Moving folders is not supported over SAF',
+      );
 
   @override
   Future<void> deleteFolder(String folderRef) async {
@@ -224,10 +241,13 @@ class SafBackend implements StorageBackend {
     Uint8List bytes, {
     bool overwrite = false,
   }) async {
-    await _call('writeDocument', {
-      'ref': docRef,
-      'bytes': bytes,
-      'overwrite': overwrite,
-    }, docRef);
+    await _call(
+        'writeDocument',
+        {
+          'ref': docRef,
+          'bytes': bytes,
+          'overwrite': overwrite,
+        },
+        docRef);
   }
 }

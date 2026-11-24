@@ -75,11 +75,10 @@ class ReaderController extends ChangeNotifier {
     this.autosaveDelay = const Duration(milliseconds: 1500),
     ReaderLayout? initialLayout,
     this.mode = ReaderMode.edit, // edit by default
-  }) : layout =
-           initialLayout ??
-           (book.preferredReadingMode == ReadingMode.twoPageSpread
-               ? ReaderLayout.unfolded
-               : ReaderLayout.folded);
+  }) : layout = initialLayout ??
+            (book.preferredReadingMode == ReadingMode.twoPageSpread
+                ? ReaderLayout.unfolded
+                : ReaderLayout.folded);
 
   final Book book;
   final ReaderStorage storage;
@@ -164,11 +163,11 @@ class ReaderController extends ChangeNotifier {
   }
 
   PageBuffer _bufferFromInfo(PageInfo i) => PageBuffer(
-    id: i.id,
-    number: i.number,
-    fileName: i.fileName,
-    heading: i.heading,
-  )..text.addListener(_onTextChanged);
+        id: i.id,
+        number: i.number,
+        fileName: i.fileName,
+        heading: i.heading,
+      )..text.addListener(_onTextChanged);
 
   // Called for every keystroke in any page's controller.
   void _onTextChanged() {
@@ -342,21 +341,21 @@ class ReaderController extends ChangeNotifier {
 
   /// Adds an empty page after the current page (or spread) and goes to it.
   Future<bool> addPage() => _structural(() async {
-    final at = (spread.right ?? spread.left) + 1;
-    final known = {for (final b in _pages) b.id};
-    await storage.createPage(book.id, atNumber: at);
-    final infos = await storage.pageInfos(book.id);
-    _rebuild(infos);
-    final created = _pages.firstWhere(
-      (b) => !known.contains(b.id),
-      orElse: () => _pages.last,
-    );
-    created.loaded = true; // brand new => empty, nothing to read
-    created.savedText = '';
-    _current = SpreadMath.anchorFor(created.number, layout);
-    await _loadVisible();
-    _scheduleOpened();
-  });
+        final at = (spread.right ?? spread.left) + 1;
+        final known = {for (final b in _pages) b.id};
+        await storage.createPage(book.id, atNumber: at);
+        final infos = await storage.pageInfos(book.id);
+        _rebuild(infos);
+        final created = _pages.firstWhere(
+          (b) => !known.contains(b.id),
+          orElse: () => _pages.last,
+        );
+        created.loaded = true; // brand new => empty, nothing to read
+        created.savedText = '';
+        _current = SpreadMath.anchorFor(created.number, layout);
+        await _loadVisible();
+        _scheduleOpened();
+      });
 
   /// Deletes page [number]. The last remaining page cannot be deleted.
   Future<bool> deletePage(int number) async {
@@ -398,8 +397,7 @@ class ReaderController extends ChangeNotifier {
   Future<bool> _structural(Future<void> Function() op) async {
     operationError = null;
     if (!await flush()) {
-      operationError =
-          _firstPageError() ??
+      operationError = _firstPageError() ??
           const StorageException(
             StorageErrorKind.io,
             'Unsaved changes could not be saved.',

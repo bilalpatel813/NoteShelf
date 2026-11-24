@@ -31,20 +31,20 @@ enum PageTurnStyle { curl, flip, slide }
 
 extension PageTurnStyleX on PageTurnStyle {
   String get label => switch (this) {
-    PageTurnStyle.curl => 'Page curl',
-    PageTurnStyle.flip => 'Page flip',
-    PageTurnStyle.slide => 'Slide',
-  };
+        PageTurnStyle.curl => 'Page curl',
+        PageTurnStyle.flip => 'Page flip',
+        PageTurnStyle.slide => 'Slide',
+      };
 }
 
 /// The style the reader uses unless told otherwise.
 const kDefaultPageTurnStyle = PageTurnStyle.curl;
 
 PageTurnAnimator animatorForStyle(PageTurnStyle style) => switch (style) {
-  PageTurnStyle.curl => const CurlPageTurnAnimator(),
-  PageTurnStyle.flip => const FlipPageTurnAnimator(),
-  PageTurnStyle.slide => const SlidePageTurnAnimator(),
-};
+      PageTurnStyle.curl => const CurlPageTurnAnimator(),
+      PageTurnStyle.flip => const FlipPageTurnAnimator(),
+      PageTurnStyle.slide => const SlidePageTurnAnimator(),
+    };
 
 /// Key of the frame that exists only while a turn is in progress (test hook).
 const pageTurnFrameKey = ValueKey<String>('page-turn-frame');
@@ -189,8 +189,8 @@ class _PageTurnEngineState extends State<PageTurnEngine>
       _fullDuration * fraction.clamp(0.0, 1.0).toDouble();
 
   Widget _retain(int anchor) => RepaintBoundary(
-    child: widget.scope.buildSpread(context, anchor, interactive: false),
-  );
+        child: widget.scope.buildSpread(context, anchor, interactive: false),
+      );
 
   void _setMode() => _mode = _reduce
       ? _Mode.fade
@@ -199,8 +199,7 @@ class _PageTurnEngineState extends State<PageTurnEngine>
   void _start(int from, int to) {
     if (widget.scope.duration == Duration.zero ||
         !_size.isFinite ||
-        _size.isEmpty)
-      return;
+        _size.isEmpty) return;
     _setMode();
     _from = from;
     _to = to;
@@ -242,17 +241,16 @@ class _PageTurnEngineState extends State<PageTurnEngine>
   // ---------------------------------------------------------------------- drag
 
   double _regionWidth(int dir) => PageCurlGeometry.regionFor(
-    _size,
-    unfolded: widget.scope.layout == ReaderLayout.unfolded,
-    direction: dir,
-  ).width;
+        _size,
+        unfolded: widget.scope.layout == ReaderLayout.unfolded,
+        direction: dir,
+      ).width;
 
   void _onDragStart(DragStartDetails d) {
     _dragLive = false;
     _dragDir = 0;
     _dragTotal = 0;
-    _dragIgnored =
-        !widget.scope.gesturesEnabled ||
+    _dragIgnored = !widget.scope.gesturesEnabled ||
         _phase != _Phase.idle || // never start a second turn
         !PageTurnDrag.mayStart(
           local: d.localPosition,
@@ -355,8 +353,8 @@ class _PageTurnEngineState extends State<PageTurnEngine>
 
   Color _paperBack(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark
-      ? const Color(0xFF241F1B)
-      : const Color(0xFFF1E8D0);
+          ? const Color(0xFF241F1B)
+          : const Color(0xFFF1E8D0);
 
   @override
   Widget build(BuildContext context) {

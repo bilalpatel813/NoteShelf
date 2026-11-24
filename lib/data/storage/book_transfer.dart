@@ -176,9 +176,8 @@ class BookTransfer {
         .where((e) => _sameDir(e.dir, rootDir) && isBookFile(e.name))
         .toList();
 
-    final desired = rootDir.isNotEmpty
-        ? rootDir.last
-        : (fallbackName ?? 'Imported book');
+    final desired =
+        rootDir.isNotEmpty ? rootDir.last : (fallbackName ?? 'Imported book');
     final made = await store.createInternalFolder(desired);
     try {
       for (final e in selected) {

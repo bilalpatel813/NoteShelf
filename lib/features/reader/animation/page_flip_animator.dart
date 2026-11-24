@@ -22,21 +22,22 @@ class RectClipper extends CustomClipper<Rect> {
 
 /// Horizontal scale by [s] about x = [hinge].
 Matrix4 _scaleAbout(double hinge, double s) => Matrix4.fromList(<double>[
-  s, 0, 0, 0, //
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  hinge * (1 - s), 0, 0, 1,
-]);
+      s, 0, 0, 0, //
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      hinge * (1 - s), 0, 0, 1,
+    ]);
 
 Widget _shaded(Widget child, double alpha) => Stack(
-  fit: StackFit.expand,
-  children: [
-    child,
-    IgnorePointer(
-      child: ColoredBox(color: Color.fromRGBO(0, 0, 0, alpha.clamp(0.0, 1.0))),
-    ),
-  ],
-);
+      fit: StackFit.expand,
+      children: [
+        child,
+        IgnorePointer(
+          child:
+              ColoredBox(color: Color.fromRGBO(0, 0, 0, alpha.clamp(0.0, 1.0))),
+        ),
+      ],
+    );
 
 /// One frame of the flip at [progress] (0..1). [outgoing] / [incoming] are the
 /// spreads built by the reader's SpreadBuilder, retained by the caller.

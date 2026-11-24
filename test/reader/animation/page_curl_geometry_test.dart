@@ -12,12 +12,13 @@ CurlFrame _frame({
   required bool unfolded,
   required int dir,
   required double t,
-}) => PageCurlGeometry.compute(
-  size: _size,
-  unfolded: unfolded,
-  direction: dir,
-  progress: t,
-);
+}) =>
+    PageCurlGeometry.compute(
+      size: _size,
+      unfolded: unfolded,
+      direction: dir,
+      progress: t,
+    );
 
 void main() {
   group('Affine2', () {

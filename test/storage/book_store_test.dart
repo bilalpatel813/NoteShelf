@@ -127,21 +127,20 @@ void main() {
 
   /// A plain folder of TXT files, like a user would have.
   Future<Directory> makeFolder(String name, Map<String, String> files) async {
-    final d = await Directory(p.join(tmp.path, 'src', name))
-        .create(recursive: true);
+    final d =
+        await Directory(p.join(tmp.path, 'src', name)).create(recursive: true);
     for (final e in files.entries) {
       await File(p.join(d.path, e.key)).writeAsString(e.value);
     }
     return d;
   }
 
-  List<String> txtNames(Directory d) =>
-      d
-          .listSync()
-          .map((e) => p.basename(e.path))
-          .where((n) => n.endsWith('.txt'))
-          .toList()
-        ..sort();
+  List<String> txtNames(Directory d) => d
+      .listSync()
+      .map((e) => p.basename(e.path))
+      .where((n) => n.endsWith('.txt'))
+      .toList()
+    ..sort();
 
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('booknotes_t2_');
@@ -215,7 +214,9 @@ void main() {
 
   // ------------------------------------------------------------------ create
   group('create book', () {
-    test('creates folder, metadata and first page; stream emits immediately and on change', () async {
+    test(
+        'creates folder, metadata and first page; stream emits immediately and on change',
+        () async {
       final s = await openStore();
       final emissions = <List<Book>>[];
       final sub = s.watchBooks().listen(emissions.add);
@@ -298,7 +299,9 @@ void main() {
 
   // ------------------------------------------------------------------ import
   group('import folder', () {
-    test('copy mode: numeric order, original untouched, metadata created in the copy', () async {
+    test(
+        'copy mode: numeric order, original untouched, metadata created in the copy',
+        () async {
       final src = await makeFolder('Notes', {
         'page 10.txt': 'ten',
         'page 2.txt': 'two',
@@ -322,7 +325,9 @@ void main() {
       expect(txtNames(src), ['page 1.txt', 'page 10.txt', 'page 2.txt']);
     });
 
-    test('importing the same folder twice never overwrites (second copy gets "(2)")', () async {
+    test(
+        'importing the same folder twice never overwrites (second copy gets "(2)")',
+        () async {
       final src = await makeFolder('Dup', {'a-001.txt': 'x'});
       final s = await openStore();
       final a = (await s.importFolder(src.path)).single;
@@ -333,7 +338,9 @@ void main() {
       expect(b.title, 'Dup'); // title comes from the source, not the suffix
     });
 
-    test('link mode: uses the folder in place, writes booknotes.json there, no duplicates', () async {
+    test(
+        'link mode: uses the folder in place, writes booknotes.json there, no duplicates',
+        () async {
       final src = await makeFolder('Linked', {
         'Intro-001.txt': 'hello',
         'Next-002.txt': 'world',
@@ -354,7 +361,8 @@ void main() {
       final again = (await s.importFolder(
         src.path,
         mode: ImportMode.link,
-      )).single;
+      ))
+          .single;
       expect(again.id, b.id);
       expect(await s.listBooks(), hasLength(1));
     });
@@ -394,7 +402,8 @@ void main() {
         final b = (await s.importFolder(
           src.path,
           mode: ImportMode.link,
-        )).single;
+        ))
+            .single;
         File(p.join(src.path, 'c-003.txt')).writeAsStringSync('c');
         File(p.join(src.path, 'a-001.txt')).deleteSync();
         final infos = await s.pageInfos(b.id);
@@ -596,7 +605,8 @@ void main() {
         final b = (await s.importFolder(
           src.path,
           mode: ImportMode.link,
-        )).single;
+        ))
+            .single;
         File(p.join(src.path, 'booknotes.json'))
             .writeAsStringSync('{ not json');
         final s2 = await openStore();
@@ -662,7 +672,9 @@ void main() {
       },
     );
 
-    test('rename and createFolder refuse existing targets; names cannot escape the folder', () async {
+    test(
+        'rename and createFolder refuse existing targets; names cannot escape the folder',
+        () async {
       const io = IoBackend();
       await io.writeBytes(tmp.path, 'a.txt', encodeText('a'));
       await io.writeBytes(tmp.path, 'b.txt', encodeText('b'));
@@ -719,7 +731,9 @@ void main() {
 
   // ------------------------------------------------------------------ permissions
   group('permissions', () {
-    test('revoked folder: reads throw permissionDenied, shelf still shows the book, relink works', () async {
+    test(
+        'revoked folder: reads throw permissionDenied, shelf still shows the book, relink works',
+        () async {
       final src = await makeFolder('Shared', {'a-001.txt': 'a'});
       final fault = FaultBackend(const IoBackend());
       final s = await openStore(backend: fault);
@@ -751,7 +765,8 @@ void main() {
       final otherBook = (await s.importFolder(
         other.path,
         mode: ImportMode.link,
-      )).single;
+      ))
+          .single;
       expect(otherBook.id, isNot(b.id));
       await expectLater(
         s.relinkBook(b.id, other.path),
@@ -820,7 +835,8 @@ void main() {
 
   // ------------------------------------------------------------------ export / import
   group('export and re-import', () {
-    test('folder export is a normal folder and re-imports as a new book', () async {
+    test('folder export is a normal folder and re-imports as a new book',
+        () async {
       final s = await openStore();
       final b = await s.createBook(
         const NewBookRequest(title: 'Physics', subject: 'Science'),
@@ -938,7 +954,8 @@ void main() {
           (await s.listPages(
             plain.id,
             withContent: true,
-          )).map((x) => x.content),
+          ))
+              .map((x) => x.content),
           ['one', 'two', 'ten'],
         );
 

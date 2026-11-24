@@ -133,13 +133,13 @@ class SpreadView extends StatelessWidget {
       controller.layout,
     );
     Widget sheet(int n, {required bool left}) => Expanded(
-      child: PageSheet(
-        controller: controller,
-        number: n,
-        interactive: interactive,
-        leftSide: left,
-      ),
-    );
+          child: PageSheet(
+            controller: controller,
+            number: n,
+            interactive: interactive,
+            leftSide: left,
+          ),
+        );
 
     if (controller.layout == ReaderLayout.folded) {
       return Row(children: [sheet(s.left, left: false)]);
@@ -159,16 +159,16 @@ class SpreadView extends StatelessWidget {
 
 Color _paper(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
-    ? const Color(0xFF2B2622)
-    : const Color(0xFFFBF4E4);
+        ? const Color(0xFF2B2622)
+        : const Color(0xFFFBF4E4);
 
 class _BlankSheet extends StatelessWidget {
   const _BlankSheet();
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: _paper(context).withOpacity(0.6),
-    child: const SizedBox.expand(),
-  );
+        color: _paper(context).withOpacity(0.6),
+        child: const SizedBox.expand(),
+      );
 }
 
 /// One page. Edit mode: multi-line TextField bound to the controller-owned
@@ -415,17 +415,17 @@ class _LoadFailed extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.error_outline),
-        const SizedBox(height: 8),
-        const Text('This page could not be loaded.'),
-        const SizedBox(height: 8),
-        OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
-      ],
-    ),
-  );
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline),
+            const SizedBox(height: 8),
+            const Text('This page could not be loaded.'),
+            const SizedBox(height: 8),
+            OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+          ],
+        ),
+      );
 }
 
 // =============================================================================
@@ -514,8 +514,8 @@ class SaveStatusChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           text,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: color),
+          style:
+              Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
         ),
       ],
     );

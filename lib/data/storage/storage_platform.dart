@@ -52,7 +52,8 @@ class CompositeBackend implements StorageBackend {
     String n,
     Uint8List b, {
     bool overwrite = false,
-  }) => _for(r).writeBytes(r, n, b, overwrite: overwrite);
+  }) =>
+      _for(r).writeBytes(r, n, b, overwrite: overwrite);
   @override
   Future<void> delete(String r, String n) => _for(r).delete(r, n);
   @override

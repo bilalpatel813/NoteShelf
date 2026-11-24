@@ -18,9 +18,9 @@ class _Storage implements ReaderStorage {
 
   @override
   Future<List<PageInfo>> pageInfos(String bookId) async => [
-    for (var i = 1; i <= n; i++)
-      PageInfo(id: 'id$i', number: i, fileName: _name(i), heading: 'Page'),
-  ];
+        for (var i = 1; i <= n; i++)
+          PageInfo(id: 'id$i', number: i, fileName: _name(i), heading: 'Page'),
+      ];
   @override
   Future<BookPage?> readPage(String bookId, int p) async => p < 1 || p > n
       ? null
@@ -50,13 +50,13 @@ class _Storage implements ReaderStorage {
 }
 
 Book _book({ReadingMode mode = ReadingMode.singlePage}) => Book(
-  id: 'b1',
-  title: 'Physics',
-  subject: 'Science',
-  folderRef: '/x',
-  lastOpenedPage: 1,
-  preferredReadingMode: mode,
-);
+      id: 'b1',
+      title: 'Physics',
+      subject: 'Science',
+      folderRef: '/x',
+      lastOpenedPage: 1,
+      preferredReadingMode: mode,
+    );
 
 Future<void> _open(
   WidgetTester t, {
@@ -86,11 +86,9 @@ Future<void> _viewMode(WidgetTester t) async {
 
 /// Pumps until the reader has started turning (the controller answers async).
 Future<void> _pumpUntilTurning(WidgetTester t) async {
-  for (
-    var i = 0;
-    i < 10 && find.byKey(pageTurnFrameKey).evaluate().isEmpty;
-    i++
-  ) {
+  for (var i = 0;
+      i < 10 && find.byKey(pageTurnFrameKey).evaluate().isEmpty;
+      i++) {
     await t.pump(const Duration(milliseconds: 20));
   }
 }

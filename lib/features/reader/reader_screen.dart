@@ -311,21 +311,24 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   Map<ShortcutActivator, VoidCallback> _shortcuts() => {
-    const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
-        c.flush(),
-    const SingleActivator(LogicalKeyboardKey.keyE, control: true): () =>
-        c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
-    const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): c.next,
-    const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): c.previous,
-    const SingleActivator(LogicalKeyboardKey.pageDown, control: true): c.next,
-    const SingleActivator(LogicalKeyboardKey.pageUp, control: true): c.previous,
-    if (!c.isEdit) ...{
-      const SingleActivator(LogicalKeyboardKey.arrowRight): c.next,
-      const SingleActivator(LogicalKeyboardKey.arrowLeft): c.previous,
-      const SingleActivator(LogicalKeyboardKey.pageDown): c.next,
-      const SingleActivator(LogicalKeyboardKey.pageUp): c.previous,
-    },
-  };
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true): () =>
+            c.flush(),
+        const SingleActivator(LogicalKeyboardKey.keyE, control: true): () =>
+            c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
+        const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true): c.next,
+        const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true):
+            c.previous,
+        const SingleActivator(LogicalKeyboardKey.pageDown, control: true):
+            c.next,
+        const SingleActivator(LogicalKeyboardKey.pageUp, control: true):
+            c.previous,
+        if (!c.isEdit) ...{
+          const SingleActivator(LogicalKeyboardKey.arrowRight): c.next,
+          const SingleActivator(LogicalKeyboardKey.arrowLeft): c.previous,
+          const SingleActivator(LogicalKeyboardKey.pageDown): c.next,
+          const SingleActivator(LogicalKeyboardKey.pageUp): c.previous,
+        },
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -365,52 +368,53 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   List<Widget> _actions(BuildContext context) => [
-    if (c.isEdit) Center(child: SaveStatusChip(controller: c)),
-    if (c.isEdit)
-      IconButton(
-        tooltip: 'Save (Ctrl+S)',
-        icon: const Icon(Icons.save_outlined),
-        onPressed: c.hasUnsavedChanges ? () => c.flush() : null,
-      ),
-    IconButton(
-      tooltip: c.isEdit
-          ? 'Switch to View mode (Ctrl+E)'
-          : 'Switch to Edit mode (Ctrl+E)',
-      icon: Icon(c.isEdit ? Icons.menu_book_outlined : Icons.edit_outlined),
-      onPressed: () => c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
-    ),
-    IconButton(
-      tooltip: c.layout == ReaderLayout.folded
-          ? 'Unfold (two pages)'
-          : 'Fold (one page)',
-      icon: Icon(
-        c.layout == ReaderLayout.folded
-            ? Icons.auto_stories_outlined
-            : Icons.crop_portrait,
-      ),
-      onPressed: () => c.setLayout(
-        c.layout == ReaderLayout.folded
-            ? ReaderLayout.unfolded
-            : ReaderLayout.folded,
-      ),
-    ),
-    if (widget.animator == null)
-      PopupMenuButton<PageTurnStyle>(
-        tooltip: 'Page turn style',
-        icon: const Icon(Icons.flip_outlined),
-        initialValue: _style,
-        onSelected: (v) => setState(() => _style = v),
-        itemBuilder: (_) => [
-          for (final st in PageTurnStyle.values)
-            PopupMenuItem(value: st, child: Text(st.label)),
-        ],
-      ),
-    IconButton(
-      tooltip: 'Fonts and text',
-      icon: const Icon(Icons.text_fields),
-      onPressed: () => showTypographySheet(context, c),
-    ),
-  ];
+        if (c.isEdit) Center(child: SaveStatusChip(controller: c)),
+        if (c.isEdit)
+          IconButton(
+            tooltip: 'Save (Ctrl+S)',
+            icon: const Icon(Icons.save_outlined),
+            onPressed: c.hasUnsavedChanges ? () => c.flush() : null,
+          ),
+        IconButton(
+          tooltip: c.isEdit
+              ? 'Switch to View mode (Ctrl+E)'
+              : 'Switch to Edit mode (Ctrl+E)',
+          icon: Icon(c.isEdit ? Icons.menu_book_outlined : Icons.edit_outlined),
+          onPressed: () =>
+              c.setMode(c.isEdit ? ReaderMode.view : ReaderMode.edit),
+        ),
+        IconButton(
+          tooltip: c.layout == ReaderLayout.folded
+              ? 'Unfold (two pages)'
+              : 'Fold (one page)',
+          icon: Icon(
+            c.layout == ReaderLayout.folded
+                ? Icons.auto_stories_outlined
+                : Icons.crop_portrait,
+          ),
+          onPressed: () => c.setLayout(
+            c.layout == ReaderLayout.folded
+                ? ReaderLayout.unfolded
+                : ReaderLayout.folded,
+          ),
+        ),
+        if (widget.animator == null)
+          PopupMenuButton<PageTurnStyle>(
+            tooltip: 'Page turn style',
+            icon: const Icon(Icons.flip_outlined),
+            initialValue: _style,
+            onSelected: (v) => setState(() => _style = v),
+            itemBuilder: (_) => [
+              for (final st in PageTurnStyle.values)
+                PopupMenuItem(value: st, child: Text(st.label)),
+            ],
+          ),
+        IconButton(
+          tooltip: 'Fonts and text',
+          icon: const Icon(Icons.text_fields),
+          onPressed: () => showTypographySheet(context, c),
+        ),
+      ];
 
   Widget _saveErrorBanner(BuildContext context) {
     final err = c.pages.where((p) => p.error != null && p.dirty).first;

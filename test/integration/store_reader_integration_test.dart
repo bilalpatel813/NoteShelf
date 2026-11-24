@@ -24,14 +24,18 @@ void main() {
     if (await tmp.exists()) await tmp.delete(recursive: true);
   });
 
-  test('production providers have no demo defaults (missing override fails loudly)', () {
+  test(
+      'production providers have no demo defaults (missing override fails loudly)',
+      () {
     final c = ProviderContainer();
     addTearDown(c.dispose);
     expect(() => c.read(bookRepositoryProvider), throwsA(anything));
     expect(() => c.read(bookshelfActionsProvider), throwsA(anything));
   });
 
-  test('create, edit, autosave/flush, restart: book, text, typography and page persist', () async {
+  test(
+      'create, edit, autosave/flush, restart: book, text, typography and page persist',
+      () async {
     var s = await TxtStorage.open(libraryRoot: root);
     final book = await s.books.createBook(
       const NewBookRequest(title: 'Journal'),
@@ -67,7 +71,8 @@ void main() {
     expect(fonts.family, 'Merriweather');
   });
 
-  test('a failed save keeps the text in memory and the file on disk untouched', () async {
+  test('a failed save keeps the text in memory and the file on disk untouched',
+      () async {
     final s = await TxtStorage.open(libraryRoot: root);
     final book = await s.books.createBook(const NewBookRequest(title: 'Safe'));
     final c = ReaderController(
@@ -82,8 +87,8 @@ void main() {
     // Change the file behind the app's back: the next save must not clobber it.
     final folder = Directory(book.folderRef);
     final file = folder.listSync().whereType<File>().firstWhere(
-      (f) => f.path.toLowerCase().endsWith('.txt'),
-    );
+          (f) => f.path.toLowerCase().endsWith('.txt'),
+        );
     await Future<void>.delayed(const Duration(milliseconds: 20));
     await file.writeAsString('edited elsewhere');
 
