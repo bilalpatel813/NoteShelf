@@ -3,27 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/contracts/contracts.dart';
 import '../../core/models/book.dart';
-import '../../data/in_memory_book_repository.dart';
 
 // ---------------------------------------------------------------------------
 // INTEGRATION PROVIDERS - later tasks override these in ProviderScope.
 // ---------------------------------------------------------------------------
 
-/// T2: override with the TXT/folder-backed repository.
-final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  final repo = InMemoryBookRepository.withSamples();
-  ref.onDispose(repo.dispose);
-  return repo;
-});
+/// Must be overridden with the TXT/folder-backed repository (see main.dart).
+/// There is deliberately no demo default: a missing override fails loudly
+/// instead of silently showing sample data.
+final bookRepositoryProvider = Provider<BookRepository>(
+  (ref) => throw UnimplementedError('bookRepositoryProvider must be overridden (main.dart)'),
+);
 
 /// T2: override with the TXT page repository. Not used by the bookshelf.
 final pageRepositoryProvider = Provider<PageRepository>(
   (ref) => throw UnimplementedError('T2 must override pageRepositoryProvider'),
 );
 
-/// T2 (New Book / Import Folder) and T3 (open reader): override with real flows.
-final bookshelfActionsProvider =
-    Provider<BookshelfActions>((ref) => DemoBookshelfActions(ref));
+/// Must be overridden with T2Actions (New Book / Import Folder) + T3 openReader.
+final bookshelfActionsProvider = Provider<BookshelfActions>(
+  (ref) => throw UnimplementedError('bookshelfActionsProvider must be overridden (main.dart)'),
+);
 
 // ---------------------------------------------------------------------------
 // UI state
@@ -138,115 +138,3 @@ final visibleBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
     return list;
   });
 });
-
-// ---------------------------------------------------------------------------
-// Placeholder actions (demo only; replaced by T2 / T3)
-// ---------------------------------------------------------------------------
-
-class DemoBookshelfActions implements BookshelfActions {
-  DemoBookshelfActions(this._ref);
-  final Ref _ref;
-
-  @override
-  Future<void> newBook(BuildContext context) async {
-    final req = await showDialog<NewBookRequest>(
-      context: context,
-      builder: (_) => const _NewBookDialog(),
-    );
-    if (req != null) await _ref.read(bookRepositoryProvider).createBook(req);
-  }
-
-  @override
-  Future<void> importFolder(BuildContext context) async {
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Import Folder'),
-        content: const Text(
-          'Integration point for T2: pick a folder, then call '
-          'BookRepository.importFolder(path).',
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-      ),
-    );
-  }
-
-  @override
-  Future<void> openBook(BuildContext context, Book book) async {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Reader integration point (T3): would open "${book.title}" '
-          'at page ${book.lastOpenedPage}.'),
-    ));
-    await _ref.read(bookRepositoryProvider).markOpened(book.id);
-  }
-}
-
-class _NewBookDialog extends StatefulWidget {
-  const _NewBookDialog();
-  @override
-  State<_NewBookDialog> createState() => _NewBookDialogState();
-}
-
-class _NewBookDialogState extends State<_NewBookDialog> {
-  static const _colors = [0xFF7A2E2E, 0xFF1F3A5F, 0xFF2F4A2A, 0xFF5B2A63, 0xFF5A4630, 0xFF0F5D5A];
-  final _title = TextEditingController();
-  final _subject = TextEditingController();
-  int _color = _colors.first;
-
-  @override
-  void dispose() {
-    _title.dispose();
-    _subject.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final t = _title.text.trim();
-    if (t.isEmpty) return;
-    final s = _subject.text.trim();
-    Navigator.pop(
-      context,
-      NewBookRequest(title: t, subject: s.isEmpty ? 'General' : s, coverColorValue: _color),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('New Book'),
-      content: SizedBox(
-        width: 360,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: _title,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Title'),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _subject,
-            decoration: const InputDecoration(labelText: 'Subject'),
-            onSubmitted: (_) => _submit(),
-          ),
-          const SizedBox(height: 16),
-          Wrap(spacing: 10, children: [
-            for (final c in _colors)
-              GestureDetector(
-                onTap: () => setState(() => _color = c),
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Color(c),
-                  child: _color == c ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
-                ),
-              ),
-          ]),
-        ]),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        FilledButton(onPressed: _submit, child: const Text('Create book')),
-      ],
-    );
-  }
-}

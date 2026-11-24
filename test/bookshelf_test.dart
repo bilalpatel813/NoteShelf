@@ -2,10 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:booknotes/features/bookshelf/bookshelf_providers.dart';
 import 'package:booknotes/main.dart';
 
+import 'support/demo_bookshelf_actions.dart';
+import 'support/in_memory_book_repository.dart';
+
 Future<void> _launch(WidgetTester tester) async {
-  await tester.pumpWidget(const ProviderScope(child: BookNotesApp()));
+  await tester.pumpWidget(ProviderScope(
+    overrides: [
+      bookRepositoryProvider.overrideWith((ref) {
+        final repo = InMemoryBookRepository.withSamples();
+        ref.onDispose(repo.dispose);
+        return repo;
+      }),
+      bookshelfActionsProvider.overrideWith((ref) => DemoBookshelfActions(ref)),
+    ],
+    child: const BookNotesApp(),
+  ));
   await tester.pumpAndSettle();
 }
 

@@ -8,9 +8,10 @@ import '../../core/contracts/contracts.dart';
 import '../../core/models/book.dart';
 import '../../core/theme/app_theme.dart';
 import 'book_card.dart';
+import '../../data/storage/t2_actions.dart';
 import 'bookshelf_providers.dart';
 
-enum _BookAction { open, select, info, delete }
+enum _BookAction { open, select, info, rename, export, delete }
 
 class BookshelfScreen extends ConsumerStatefulWidget {
   const BookshelfScreen({super.key});
@@ -62,6 +63,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         selected ? 'Deselect' : 'Select'
       ),
       (_BookAction.info, Icons.info_outline, 'Book info'),
+      (_BookAction.rename, Icons.drive_file_rename_outline, 'Rename'),
+      (_BookAction.export, Icons.ios_share_outlined, 'Export as ZIP'),
       (_BookAction.delete, Icons.delete_outline, 'Delete'),
     ];
 
@@ -108,8 +111,54 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         ctrl.toggleSelect(book.id);
       case _BookAction.info:
         _showInfo(book);
+      case _BookAction.rename:
+        await _rename(book);
+      case _BookAction.export:
+        final a = ref.read(bookshelfActionsProvider);
+        if (a is T2Actions) await a.exportBookAsZip(context, book);
       case _BookAction.delete:
         await _confirmDelete([book]);
+    }
+  }
+
+  Future<void> _rename(Book book) async {
+    final c = TextEditingController(text: book.title);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename book'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Title'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Rename')),
+        ],
+      ),
+    );
+    c.dispose();
+    final t = name?.trim();
+    if (t == null || t.isEmpty || t == book.title || !mounted) return;
+    await _storageOp(() => ref.read(bookRepositoryProvider).updateBook(book.copyWith(title: t)));
+  }
+
+  /// Runs a storage call and shows a readable dialog instead of crashing.
+  Future<void> _storageOp(Future<void> Function() body) async {
+    try {
+      await body();
+    } catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Could not complete that'),
+          content: Text(describeStorageError(e)),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+        ),
+      );
     }
   }
 
@@ -156,7 +205,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     // T2 decides what "delete" means for files on disk.
     final repo = ref.read(bookRepositoryProvider);
     for (final b in books) {
-      await repo.deleteBook(b.id);
+      await _storageOp(() => repo.deleteBook(b.id));
     }
     ref.read(shelfControllerProvider.notifier).clearSelection();
   }
@@ -229,9 +278,16 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
           ] else
             PopupMenuButton<String>(
               tooltip: 'More',
-              onSelected: (_) => actions.importFolder(context),
+              onSelected: (v) {
+                if (v == 'zip' && actions is T2Actions) {
+                  (actions as T2Actions).importZip(context);
+                } else {
+                  actions.importFolder(context);
+                }
+              },
               itemBuilder: (_) => const [
                 PopupMenuItem(value: 'import', child: Text('Import Folder')),
+                PopupMenuItem(value: 'zip', child: Text('Import ZIP')),
               ],
             ),
           IconButton(

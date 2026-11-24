@@ -1,7 +1,7 @@
 /// T2 - New Book / Import Folder flows (+ export/import/reconnect helpers).
 ///
-/// openBook is NOT implemented here: it is forwarded to [openBook] when given
-/// (T3 passes its navigation) and otherwise to DemoBookshelfActions.
+/// openBook is NOT implemented here: it is forwarded to the reader navigation
+/// (T3's openReader) that main.dart passes in.
 library;
 
 import 'package:flutter/material.dart';
@@ -47,11 +47,11 @@ String describeStorageError(Object e) {
 }
 
 class T2Actions implements BookshelfActions {
-  T2Actions(this._ref, {Future<void> Function(BuildContext, Book)? openBook})
+  T2Actions(this._ref, {required Future<void> Function(BuildContext, Book) openBook})
       : _openBook = openBook;
 
   final Ref _ref;
-  final Future<void> Function(BuildContext, Book)? _openBook;
+  final Future<void> Function(BuildContext, Book) _openBook;
 
   TxtBookRepository get _repo => _ref.read(txtBookRepositoryProvider);
 
@@ -73,8 +73,10 @@ class T2Actions implements BookshelfActions {
   Future<void> importFolder(BuildContext context) async {
     final platform = _repo.platform;
     if (platform == null) throw StateError('TxtBookRepository has no StoragePlatform');
-    final ref = await platform.pickFolder();
-    if (ref == null || !context.mounted) return;
+    String? ref;
+    await _guarded(context, () async => ref = await platform.pickFolder());
+    final picked = ref;
+    if (picked == null || !context.mounted) return;
     final mode = await showDialog<ImportMode>(
       context: context,
       builder: (ctx) => SimpleDialog(
@@ -100,7 +102,7 @@ class T2Actions implements BookshelfActions {
     );
     if (mode == null || !context.mounted) return;
     await _guarded(context, () async {
-      final books = await _repo.importFolder(ref, mode: mode);
+      final books = await _repo.importFolder(picked, mode: mode);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(books.length == 1
@@ -112,11 +114,8 @@ class T2Actions implements BookshelfActions {
   }
 
   @override
-  Future<void> openBook(BuildContext context, Book book) {
-    final open = _openBook;
-    if (open != null) return open(context, book);
-    return DemoBookshelfActions(_ref).openBook(context, book);
-  }
+  Future<void> openBook(BuildContext context, Book book) =>
+      _guarded(context, () => _openBook(context, book));
 
   // ---------------------------------------------------------------- extra flows
 
@@ -175,7 +174,7 @@ class T2Actions implements BookshelfActions {
   Future<void> _guarded(BuildContext context, Future<void> Function() body) async {
     try {
       await body();
-    } on StorageException catch (e) {
+    } catch (e) {
       if (!context.mounted) return;
       await showDialog<void>(
         context: context,
