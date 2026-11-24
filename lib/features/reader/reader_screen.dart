@@ -18,6 +18,7 @@ import '../../data/storage/book_store.dart';
 import '../../data/storage/t2_actions.dart' show bookStoreProvider, describeStorageError;
 import 'reader_controller.dart';
 import 'reader_models.dart';
+import 'animation/page_turn_animator.dart';
 import 'reader_widgets.dart';
 import 'typography_panel.dart';
 
@@ -67,7 +68,7 @@ class BookReaderView extends StatelessWidget {
   const BookReaderView({
     super.key,
     required this.controller,
-    this.animator = const SlidePageTurnAnimator(),
+    this.animator = const CurlPageTurnAnimator(),
   });
 
   final ReaderController controller;
@@ -94,6 +95,7 @@ class BookReaderView extends StatelessWidget {
           layout: controller.layout,
           canGoBack: controller.canGoBack,
           canGoForward: controller.canGoForward,
+          gesturesEnabled: !controller.isEdit,
           goBack: controller.previous,
           goForward: controller.next,
           buildSpread: (ctx, anchor, {required interactive}) =>
@@ -105,8 +107,9 @@ class BookReaderView extends StatelessWidget {
           ),
           child: ClipRect(child: animator.build(context, scope)),
         );
-        if (!controller.isEdit) {
+        if (!controller.isEdit && !animator.handlesGestures) {
           // Swiping is only safe in View mode (it would fight text selection in Edit).
+          // Animators that handle drags themselves (curl, flip) skip this.
           pages = GestureDetector(
             behavior: HitTestBehavior.translucent,
             onHorizontalDragEnd: (d) {
@@ -125,6 +128,21 @@ class BookReaderView extends StatelessWidget {
     );
   }
 
+  // A drag shows the neighbouring spread before the reader has moved to it, so
+  // make sure its text is loaded. Runs once per anchor change (not per build).
+  static void _preloadNeighbours(ReaderController c) {
+    final step = SpreadMath.step(c.layout);
+    final here = c.spread.left;
+    scheduleMicrotask(() {
+      for (final anchor in [here + step, here - step]) {
+        for (var i = 0; i < step; i++) {
+          final b = c.bufferFor(anchor + i);
+          if (b != null && !b.loaded && b.error == null) unawaited(c.ensureLoaded(anchor + i));
+        }
+      }
+    });
+  }
+
   // Remember the previous anchor so animators can derive direction.
   static final Expando<int> _prev = Expando<int>('prevAnchor');
   static final Expando<int> _cur = Expando<int>('curAnchor');
@@ -134,6 +152,7 @@ class BookReaderView extends StatelessWidget {
     if (cur != now) {
       _prev[c] = cur ?? now;
       _cur[c] = now;
+      _preloadNeighbours(c);
     }
     return _prev[c] ?? now;
   }
@@ -148,13 +167,15 @@ class ReaderScreen extends StatefulWidget {
     super.key,
     required this.book,
     required this.storage,
-    this.animator = const SlidePageTurnAnimator(),
+    this.animator,
     this.autosaveDelay = const Duration(milliseconds: 1500),
   });
 
   final Book book;
   final ReaderStorage storage;
-  final PageTurnAnimator animator;
+  /// Fixed animator. Leave null to let the reader's "Page turn" menu choose
+  /// (default [kDefaultPageTurnStyle]).
+  final PageTurnAnimator? animator;
   final Duration autosaveDelay;
 
   @override
@@ -164,6 +185,7 @@ class ReaderScreen extends StatefulWidget {
 class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver {
   late final ReaderController c;
   bool _closing = false;
+  PageTurnStyle _style = kDefaultPageTurnStyle;
 
   @override
   void initState() {
@@ -283,7 +305,7 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
               ),
               body: Column(children: [
                 if (c.hasSaveError) _saveErrorBanner(context),
-                Expanded(child: BookReaderView(controller: c, animator: widget.animator)),
+                Expanded(child: BookReaderView(controller: c, animator: widget.animator ?? animatorForStyle(_style))),
               ]),
             ),
           ),
@@ -313,6 +335,17 @@ class _ReaderScreenState extends State<ReaderScreen> with WidgetsBindingObserver
           onPressed: () => c.setLayout(
               c.layout == ReaderLayout.folded ? ReaderLayout.unfolded : ReaderLayout.folded),
         ),
+        if (widget.animator == null)
+          PopupMenuButton<PageTurnStyle>(
+            tooltip: 'Page turn style',
+            icon: const Icon(Icons.flip_outlined),
+            initialValue: _style,
+            onSelected: (v) => setState(() => _style = v),
+            itemBuilder: (_) => [
+              for (final st in PageTurnStyle.values)
+                PopupMenuItem(value: st, child: Text(st.label)),
+            ],
+          ),
         IconButton(
           tooltip: 'Fonts and text',
           icon: const Icon(Icons.text_fields),

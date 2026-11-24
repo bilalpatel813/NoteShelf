@@ -37,6 +37,7 @@ class PageTurnScope {
     required this.goBack,
     required this.goForward,
     this.duration = const Duration(milliseconds: 280),
+    this.gesturesEnabled = true,
   });
 
   /// First page of the spread that should be on screen now (1-based).
@@ -56,6 +57,10 @@ class PageTurnScope {
   final VoidCallback goBack, goForward;
   final Duration duration;
 
+  /// False in Edit mode: animators that handle touch / mouse drags themselves
+  /// must not start one (it would fight caret placement and text selection).
+  final bool gesturesEnabled;
+
   /// +1 forward, -1 backward, 0 none.
   int get direction => anchor.compareTo(previousAnchor);
 }
@@ -65,6 +70,10 @@ class PageTurnScope {
 /// [PageTurnScope.goBack] / [PageTurnScope.goForward].
 abstract class PageTurnAnimator {
   const PageTurnAnimator();
+
+  /// True when the animator wires up its own drag-to-turn (so the reader must
+  /// not add its own swipe detector on top).
+  bool get handlesGestures => false;
   Widget build(BuildContext context, PageTurnScope scope);
 }
 
