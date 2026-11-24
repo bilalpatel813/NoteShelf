@@ -346,7 +346,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
               tooltip: 'More',
               onSelected: (v) {
                 if (v == 'zip' && actions is T2Actions) {
-                  (actions as T2Actions).importZip(context);
+                  actions.importZip(context);
                 } else {
                   actions.importFolder(context);
                 }
