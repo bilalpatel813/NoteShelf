@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# Generates the android/ and windows/ runners (missing from the repo) and
-# applies NoteShelf's native customisations. Idempotent; never touches lib/ or test/.
-# Needs Flutter on PATH. Signing secrets come from env vars only:
-#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# Generate Android and Windows runners and apply NoteShelf customisations.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 flutter create --platforms=android,windows --project-name booknotes --org com.booknotes .
 
+# Install NoteShelf SAF plugin.
 KT_DIR=android/app/src/main/kotlin/com/booknotes/booknotes
 mkdir -p "$KT_DIR"
 cp android_native/SafPlugin.kt "$KT_DIR/SafPlugin.kt"
+
 cat > "$KT_DIR/MainActivity.kt" <<'KT'
 package com.booknotes.booknotes
 
@@ -25,33 +24,58 @@ class MainActivity : FlutterActivity() {
 }
 KT
 
-# Release signing: only when the secrets are present; otherwise the build falls
-# back to the debug key (fine for CI smoke builds, NOT for distribution).
-if [[ -n "${ANDROID_KEYSTORE_BASE64:-}" ]]; then
-  echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.jks
-  cat > android/key.properties <<PROPS
-storePassword=${ANDROID_KEYSTORE_PASSWORD}
-keyPassword=${ANDROID_KEY_PASSWORD}
-keyAlias=${ANDROID_KEY_ALIAS}
-storeFile=release.jks
-PROPS
-fi
-
+# Configure Android compile SDK and release signing.
 python3 - <<'PY'
-import os, re
-gradle = next((p for p in ("android/app/build.gradle.kts", "android/app/build.gradle") if os.path.exists(p)), None)
-s = open(gradle).read()
-if "key.properties" in s:
-    raise SystemExit(0)
-if gradle.endswith(".kts"):
-    s = "import java.util.Properties\nimport java.io.FileInputStream\n\n" + s
-    s = s.replace("android {", """val keystoreProps = Properties().apply {
+from pathlib import Path
+import re
+
+gradle = next(
+    (p for p in (
+        Path("android/app/build.gradle.kts"),
+        Path("android/app/build.gradle"),
+    ) if p.exists()),
+    None,
+)
+
+if gradle is None:
+    raise SystemExit("Android Gradle file not found")
+
+kts = gradle.suffix == ".kts"
+s = gradle.read_text()
+
+# Require Android API 36.
+if kts:
+    pattern = r"(?m)^(\s*)compileSdk(?:Version)?\s*=.*$"
+    replacement = r"\g<1>compileSdk = 36"
+else:
+    pattern = r"(?m)^(\s*)compileSdk(?:Version)?\s+.*$"
+    replacement = r"\g<1>compileSdkVersion 36"
+
+s, count = re.subn(pattern, replacement, s, count=1)
+
+if count != 1:
+    raise SystemExit("Could not update compileSdk declaration")
+
+# Add signing configuration only once.
+if "NOTE_SHELF_SIGNING_CONFIG" not in s:
+    if kts:
+        imports = """import java.util.Properties
+import java.io.FileInputStream
+
+"""
+        if "import java.util.Properties" not in s:
+            s = imports + s
+
+        config = """// NOTE_SHELF_SIGNING_CONFIG
+val keystoreProps = Properties().apply {
     val f = rootProject.file("key.properties")
     if (f.exists()) load(FileInputStream(f))
 }
 
-android {""", 1)
-    s = s.replace("buildTypes {", """signingConfigs {
+"""
+        s = s.replace("android {", config + "android {", 1)
+
+        signing = """signingConfigs {
         create("release") {
             if (keystoreProps.isNotEmpty()) {
                 keyAlias = keystoreProps["keyAlias"] as String
@@ -61,11 +85,66 @@ android {""", 1)
             }
         }
     }
-    buildTypes {""", 1)
-    s = re.sub(r'signingConfig = signingConfigs\.getByName\("debug"\)',
-               'signingConfig = if (keystoreProps.isNotEmpty()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")', s)
-else:
-    raise SystemExit("Groovy build.gradle: add the signingConfig manually (see docs/RELEASE.md)")
-open(gradle, "w").write(s)
+    """
+
+        s = s.replace("buildTypes {", signing + "buildTypes {", 1)
+
+        s = s.replace(
+            'signingConfig = signingConfigs.getByName("debug")',
+            'signingConfig = if (keystoreProps.isNotEmpty()) '
+            'signingConfigs.getByName("release") '
+            'else signingConfigs.getByName("debug")'
+        )
+    else:
+        config = """// NOTE_SHELF_SIGNING_CONFIG
+def keystoreProps = new Properties()
+def keystoreFile = rootProject.file("key.properties")
+if (keystoreFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystoreFile))
+}
+
+"""
+        s = s.replace("android {", config + "android {", 1)
+
+        signing = """signingConfigs {
+        release {
+            if (!keystoreProps.isEmpty()) {
+                keyAlias keystoreProps["keyAlias"]
+                keyPassword keystoreProps["keyPassword"]
+                storeFile file(keystoreProps["storeFile"])
+                storePassword keystoreProps["storePassword"]
+            }
+        }
+    }
+    """
+
+        s = s.replace("buildTypes {", signing + "buildTypes {", 1)
+
+        s = re.sub(
+            r"signingConfig\s+signingConfigs\.debug",
+            'signingConfig keystoreProps.isEmpty() '
+            '? signingConfigs.debug : signingConfigs.release',
+            s,
+        )
+
+gradle.write_text(s)
+print(f"Configured {gradle}: compileSdk 36 and signing")
 PY
+
+# Configure release signing only when all secrets are provided.
+if [[ -n "${ANDROID_KEYSTORE_BASE64:-}" ]]; then
+    : "${ANDROID_KEYSTORE_PASSWORD:?Missing keystore password}"
+    : "${ANDROID_KEY_ALIAS:?Missing key alias}"
+    : "${ANDROID_KEY_PASSWORD:?Missing key password}"
+
+    echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+
+    cat > android/key.properties <<PROPS
+storePassword=${ANDROID_KEYSTORE_PASSWORD}
+keyPassword=${ANDROID_KEY_PASSWORD}
+keyAlias=${ANDROID_KEY_ALIAS}
+storeFile=release.jks
+PROPS
+fi
+
 echo "Platforms ready."
