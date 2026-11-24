@@ -1,6 +1,8 @@
 name: Auto Format Dart
 
 on:
+  push:
+    branches: [main, "t5/**"]
   workflow_dispatch:
 
 permissions:
