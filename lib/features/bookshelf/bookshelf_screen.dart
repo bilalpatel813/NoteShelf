@@ -33,7 +33,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   bool get _desktop => switch (Theme.of(context).platform) {
         TargetPlatform.windows ||
         TargetPlatform.linux ||
-        TargetPlatform.macos =>
+        TargetPlatform.macOS =>
           true,
         _ => false,
       };
