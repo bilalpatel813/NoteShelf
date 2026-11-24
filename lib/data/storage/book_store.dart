@@ -185,26 +185,74 @@ enum ImportMode {
 }
 
 class FontSettings {
-  const FontSettings({this.family, this.size = 18, this.lineHeight = 1.5});
+  const FontSettings({
+    this.family,
+    this.size = 18,
+    this.lineHeight = 1.5,
+    this.weight = 400,
+    this.paragraphSpacing = 8,
+    this.align = 'left',
+    this.colorValue,
+  });
 
   final String? family;
   final double size;
   final double lineHeight;
 
-  FontSettings copyWith({String? family, double? size, double? lineHeight}) => FontSettings(
+  /// CSS-style weight: 100..900 in steps of 100 (T3).
+  final int weight;
+
+  /// Extra space between paragraphs, logical pixels (T3).
+  final double paragraphSpacing;
+
+  /// 'left' | 'center' | 'right' | 'justify' (T3).
+  final String align;
+
+  /// ARGB text colour, or null = follow the theme (T3).
+  final int? colorValue;
+
+  FontSettings copyWith({
+    String? family,
+    double? size,
+    double? lineHeight,
+    int? weight,
+    double? paragraphSpacing,
+    String? align,
+    int? colorValue,
+    bool clearColor = false,
+  }) =>
+      FontSettings(
         family: family ?? this.family,
         size: size ?? this.size,
         lineHeight: lineHeight ?? this.lineHeight,
+        weight: weight ?? this.weight,
+        paragraphSpacing: paragraphSpacing ?? this.paragraphSpacing,
+        align: align ?? this.align,
+        colorValue: clearColor ? null : (colorValue ?? this.colorValue),
       );
 
-  Map<String, Object?> toJson() => {'family': family, 'size': size, 'lineHeight': lineHeight};
+  Map<String, Object?> toJson() => {
+        'family': family,
+        'size': size,
+        'lineHeight': lineHeight,
+        'weight': weight,
+        'paragraphSpacing': paragraphSpacing,
+        'align': align,
+        'colorValue': colorValue,
+      };
 
+  /// Old files (family/size/lineHeight only) still load; new fields default.
   factory FontSettings.fromJson(Object? raw) {
     if (raw is! Map) return const FontSettings();
     return FontSettings(
       family: raw['family'] is String ? raw['family'] as String : null,
       size: (raw['size'] is num) ? (raw['size'] as num).toDouble() : 18,
       lineHeight: (raw['lineHeight'] is num) ? (raw['lineHeight'] as num).toDouble() : 1.5,
+      weight: (raw['weight'] is num) ? (raw['weight'] as num).toInt() : 400,
+      paragraphSpacing:
+          (raw['paragraphSpacing'] is num) ? (raw['paragraphSpacing'] as num).toDouble() : 8,
+      align: raw['align'] is String ? raw['align'] as String : 'left',
+      colorValue: raw['colorValue'] is num ? (raw['colorValue'] as num).toInt() : null,
     );
   }
 }

@@ -6,6 +6,7 @@ import "data/storage/t2_actions.dart";
 import "data/storage/txt_repositories.dart";
 import "features/bookshelf/bookshelf_providers.dart";
 import "features/bookshelf/bookshelf_screen.dart";
+import "features/reader/reader_screen.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,9 +15,9 @@ Future<void> main() async {
     overrides: [
       bookRepositoryProvider.overrideWithValue(storage.books),
       pageRepositoryProvider.overrideWithValue(storage.pages),
-      // New Book + Import Folder from T2; openBook still falls back to the
-      // demo until T3 passes its own: T2Actions(ref, openBook: ...).
-      bookshelfActionsProvider.overrideWith((ref) => T2Actions(ref)),
+      // New Book + Import Folder from T2; openBook from T3 (reader).
+      bookshelfActionsProvider
+          .overrideWith((ref) => T2Actions(ref, openBook: openReader(ref))),
     ],
     child: const BookNotesApp(),
   ));
