@@ -140,7 +140,7 @@ void main() {
       .map((e) => p.basename(e.path))
       .where((n) => n.endsWith('.txt'))
       .toList()
-    ..sort();
+    ..sort(comparePageFileNames);
 
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('booknotes_t2_');
