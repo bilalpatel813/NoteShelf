@@ -10,6 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.5.1
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  file_picker: ^8.1.2
+  archive: ^3.6.1   # keep on 3.x: ZipEncoder/ArchiveFile API used in book_transfer.dart
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
