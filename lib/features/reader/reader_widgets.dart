@@ -41,6 +41,7 @@ class PageTurnScope {
     required this.goForward,
     this.duration = const Duration(milliseconds: 280),
     this.gesturesEnabled = true,
+    this.textSelectable = true,
   });
 
   /// First page of the spread that should be on screen now (1-based).
@@ -63,6 +64,11 @@ class PageTurnScope {
   /// False in Edit mode: animators that handle touch / mouse drags themselves
   /// must not start one (it would fight caret placement and text selection).
   final bool gesturesEnabled;
+
+  /// Whether view-mode page text may be text-selected. [SelectionArea]'s own
+  /// pan/horizontal recognizers would otherwise claim every swipe that starts
+  /// on a word, so the reader turns this off while drag-to-turn is active.
+  final bool textSelectable;
 
   /// +1 forward, -1 backward, 0 none.
   int get direction => anchor.compareTo(previousAnchor);
@@ -119,11 +125,13 @@ class SpreadView extends StatelessWidget {
     required this.controller,
     required this.anchor,
     this.interactive = true,
+    this.textSelectable = true,
   });
 
   final ReaderController controller;
   final int anchor;
   final bool interactive;
+  final bool textSelectable;
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +146,7 @@ class SpreadView extends StatelessWidget {
             number: n,
             interactive: interactive,
             leftSide: left,
+            textSelectable: textSelectable,
           ),
         );
 
@@ -181,12 +190,14 @@ class PageSheet extends StatelessWidget {
     required this.number,
     this.interactive = true,
     this.leftSide = false,
+    this.textSelectable = true,
   });
 
   final ReaderController controller;
   final int number;
   final bool interactive;
   final bool leftSide;
+  final bool textSelectable;
 
   @override
   Widget build(BuildContext context) {
@@ -275,6 +286,7 @@ class PageSheet extends StatelessWidget {
       style: style,
       align: controller.typography.align,
       paragraphSpacing: controller.typography.paragraphSpacing,
+      selectable: textSelectable,
     );
   }
 
@@ -310,12 +322,14 @@ class _ReadOnlyText extends StatelessWidget {
     required this.style,
     required this.align,
     required this.paragraphSpacing,
+    this.selectable = true,
   });
 
   final String text;
   final TextStyle style;
   final TextAlign align;
   final double paragraphSpacing;
+  final bool selectable;
 
   @override
   Widget build(BuildContext context) {
@@ -332,20 +346,22 @@ class _ReadOnlyText extends StatelessWidget {
       );
     }
     final paragraphs = text.replaceAll('\r\n', '\n').split('\n');
-    return SelectionArea(
-      child: ListView.builder(
-        itemCount: paragraphs.length,
-        itemBuilder: (_, i) => Padding(
-          padding: EdgeInsets.only(bottom: paragraphSpacing),
-          // An empty line still takes one line of height, like in the editor.
-          child: Text(
-            paragraphs[i].isEmpty ? ' ' : paragraphs[i],
-            style: style,
-            textAlign: align,
-          ),
+    final list = ListView.builder(
+      itemCount: paragraphs.length,
+      itemBuilder: (_, i) => Padding(
+        padding: EdgeInsets.only(bottom: paragraphSpacing),
+        // An empty line still takes one line of height, like in the editor.
+        child: Text(
+          paragraphs[i].isEmpty ? ' ' : paragraphs[i],
+          style: style,
+          textAlign: align,
         ),
       ),
     );
+    // SelectionArea's pan / horizontal recognizers claim swipes that start on
+    // a word, which would stop the page from turning; skip it while the
+    // animator owns drags (see PageTurnScope.textSelectable).
+    return selectable ? SelectionArea(child: list) : list;
   }
 }
 

@@ -135,12 +135,15 @@ void main() {
     return d;
   }
 
+  // Plain name order on purpose: this is the raw directory listing, used to
+  // prove the on-disk files are exactly the ones the app produced. Logical
+  // page order (numeric) is asserted separately via listPages/parsePageFileName.
   List<String> txtNames(Directory d) => d
       .listSync()
       .map((e) => p.basename(e.path))
       .where((n) => n.endsWith('.txt'))
       .toList()
-    ..sort(comparePageFileNames);
+    ..sort();
 
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('booknotes_t2_');
@@ -481,7 +484,11 @@ void main() {
 
       final names = (await s.listPages(b.id)).map((x) => x.fileName).toList();
       expect(names, ['Page-001.txt', 'Middle-002.txt', 'Last-003.txt']);
-      expect(txtNames(Directory(b.folderRef)), names);
+      expect(txtNames(Directory(b.folderRef)), [
+        'Last-003.txt',
+        'Middle-002.txt',
+        'Page-001.txt',
+      ]);
       expect((await s.readPage(b.id, 1))!.content, 'first');
       expect((await s.listBooks()).single.pageCount, 3);
     });

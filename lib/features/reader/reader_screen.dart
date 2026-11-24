@@ -106,6 +106,10 @@ class BookReaderView extends StatelessWidget {
             ),
           );
         }
+        // The animator's horizontal drag and SelectionArea's pan both claim a
+        // swipe over a word; while drags turn pages, view-mode text selection
+        // is off so the page actually turns.
+        final selectable = controller.isEdit || !animator.handlesGestures;
         final scope = PageTurnScope(
           anchor: controller.spread.left,
           previousAnchor: _lastAnchor(controller),
@@ -113,12 +117,14 @@ class BookReaderView extends StatelessWidget {
           canGoBack: controller.canGoBack,
           canGoForward: controller.canGoForward,
           gesturesEnabled: !controller.isEdit,
+          textSelectable: selectable,
           goBack: controller.previous,
           goForward: controller.next,
           buildSpread: (ctx, anchor, {required interactive}) => SpreadView(
             controller: controller,
             anchor: anchor,
             interactive: interactive,
+            textSelectable: selectable,
           ),
         );
         Widget pages = DecoratedBox(

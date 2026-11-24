@@ -102,23 +102,36 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
       choice = await showModalBottomSheet<_BookAction>(
         context: context,
         showDragHandle: true,
+        // The menu has more rows than fit on a short screen (e.g. a landscape
+        // phone). A plain min-height Column overflows and throws; let it scroll
+        // instead. The sheet still grows to its natural height when it fits.
+        isScrollControlled: true,
         builder: (ctx) => SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                title: Text(
-                  book.title,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        title: Text(
+                          book.title,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        subtitle: Text(book.subject),
+                      ),
+                      for (final e in entries)
+                        ListTile(
+                          leading: Icon(e.$2),
+                          title: Text(e.$3),
+                          onTap: () => Navigator.pop(ctx, e.$1),
+                        ),
+                    ],
+                  ),
                 ),
-                subtitle: Text(book.subject),
               ),
-              for (final e in entries)
-                ListTile(
-                  leading: Icon(e.$2),
-                  title: Text(e.$3),
-                  onTap: () => Navigator.pop(ctx, e.$1),
-                ),
             ],
           ),
         ),

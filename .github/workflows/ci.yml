@@ -10,16 +10,21 @@ on:
 
 permissions:
   contents: read
+  actions: read # workflow_run's default-branch checkout needs Actions read
 
 jobs:
   test:
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      # Test the commit that triggered the run (the format commit), not
+      # whatever main points at now. A plain checkout on workflow_run would
+      # take the default branch's latest commit.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: subosito/flutter-action@v2
         with:
-          ref: main 
           channel: stable
           cache: true
       - run: flutter pub get
@@ -32,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -59,6 +66,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
