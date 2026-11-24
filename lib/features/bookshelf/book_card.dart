@@ -191,7 +191,7 @@ class _BookCardState extends State<BookCard> {
               width: widget.width,
               height: BookCard.labelHeight,
               child: Padding(
-                padding: const EdgeInsets.only(top: 12, left: 2, right: 2),
+                padding: const EdgeInsets.only(top: 8, left: 2, right: 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
