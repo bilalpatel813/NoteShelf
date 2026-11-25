@@ -54,6 +54,11 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: bash ./tool/setup_platforms.sh
+      - name: Force Android compile SDK 36
+        run: |
+          sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 36/' android/app/build.gradle.kts
+          sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 36/' android/app/build.gradle
+          grep -n "compileSdk" android/app/build.gradle*
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
