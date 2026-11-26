@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:booknotes/features/bookshelf/bookshelf_providers.dart';
 import 'package:booknotes/main.dart';
+import 'package:booknotes/core/models/book_design.dart';
+import 'package:booknotes/features/bookshelf/book_card.dart';
 
 import 'support/demo_bookshelf_actions.dart';
 import 'support/in_memory_book_repository.dart';
@@ -60,5 +62,21 @@ void main() {
     await tester.tap(find.text('Astronomy Field Notes').first);
     await tester.pump();
     expect(find.textContaining('Reader integration point'), findsOneWidget);
+  });
+
+  testWidgets('customizing a book updates its shelf cover', (tester) async {
+    await _launch(tester);
+    await tester.longPress(find.text('Astronomy Field Notes').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Customize cover'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Title'), 'Edited title');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final card = tester.widget<BookCard>(find.byWidgetPredicate(
+        (widget) => widget is BookCard && widget.book.title == 'Edited title'));
+    expect(card.book.title, 'Edited title');
+    expect(card.book.cover.design!.theme, BookTheme.basic);
   });
 }

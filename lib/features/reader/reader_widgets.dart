@@ -13,6 +13,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../core/models/book_design.dart';
+import '../../core/theme/book_visuals.dart';
 import 'reader_controller.dart';
 import 'reader_models.dart';
 
@@ -141,14 +143,14 @@ class SpreadView extends StatelessWidget {
       controller.layout,
     );
     Widget sheet(int n, {required bool left}) => Expanded(
-          child: PageSheet(
-            controller: controller,
-            number: n,
-            interactive: interactive,
-            leftSide: left,
-            textSelectable: textSelectable,
-          ),
-        );
+      child: PageSheet(
+        controller: controller,
+        number: n,
+        interactive: interactive,
+        leftSide: left,
+        textSelectable: textSelectable,
+      ),
+    );
 
     if (controller.layout == ReaderLayout.folded) {
       return Row(children: [sheet(s.left, left: false)]);
@@ -159,25 +161,22 @@ class SpreadView extends StatelessWidget {
         Container(width: 2, color: Colors.black.withOpacity(0.18)), // gutter
         // Odd final page: the right side is an empty sheet.
         s.right == null
-            ? const Expanded(child: _BlankSheet())
+            ? Expanded(child: _BlankSheet(design: controller.book.cover.design))
             : sheet(s.right!, left: false),
       ],
     );
   }
 }
 
-Color _paper(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF2B2622)
-        : const Color(0xFFFBF4E4);
-
 class _BlankSheet extends StatelessWidget {
-  const _BlankSheet();
+  const _BlankSheet({this.design});
+  final BookDesign? design;
   @override
-  Widget build(BuildContext context) => ColoredBox(
-        color: _paper(context).withOpacity(0.6),
-        child: const SizedBox.expand(),
-      );
+  Widget build(BuildContext context) => BookPageSurface(
+    design: design,
+    blank: true,
+    child: const SizedBox.expand(),
+  );
 }
 
 /// One page. Edit mode: multi-line TextField bound to the controller-owned
@@ -203,12 +202,12 @@ class PageSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final b = controller.bufferFor(number);
     final scheme = Theme.of(context).colorScheme;
-    if (b == null) return const _BlankSheet();
+    if (b == null) return _BlankSheet(design: controller.book.cover.design);
     final style = controller.typography.toTextStyle(context);
     final edit = controller.isEdit && interactive;
 
-    return ColoredBox(
-      color: _paper(context),
+    return BookPageSurface(
+      design: controller.book.cover.design,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
         child: Column(
@@ -431,17 +430,17 @@ class _LoadFailed extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline),
-            const SizedBox(height: 8),
-            const Text('This page could not be loaded.'),
-            const SizedBox(height: 8),
-            OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
-          ],
-        ),
-      );
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.error_outline),
+        const SizedBox(height: 8),
+        const Text('This page could not be loaded.'),
+        const SizedBox(height: 8),
+        OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+      ],
+    ),
+  );
 }
 
 // =============================================================================
@@ -530,8 +529,8 @@ class SaveStatusChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           text,
-          style:
-              Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: color),
         ),
       ],
     );

@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import 'book_design.dart';
+
 /// How the user prefers to read a book. T3/T4 decide how each mode renders.
 enum ReadingMode { singlePage, twoPageSpread, continuousScroll }
 
@@ -12,20 +14,27 @@ enum ReadingMode { singlePage, twoPageSpread, continuousScroll }
 /// the book folder. T2 decides the convention and resolves it.
 @immutable
 class BookCoverRef {
-  const BookCoverRef({this.imagePath, this.colorValue = 0xFF7A2E2E});
+  const BookCoverRef({
+    this.imagePath,
+    this.colorValue = 0xFF7A2E2E,
+    this.design,
+  });
 
   final String? imagePath;
   final int colorValue;
+  final BookDesign? design;
 
   Map<String, Object?> toJson() => {
-        'imagePath': imagePath,
-        'colorValue': colorValue,
-      };
+    'imagePath': imagePath,
+    'colorValue': colorValue,
+    if (design != null) 'design': design!.toJson(),
+  };
 
   factory BookCoverRef.fromJson(Map<String, Object?> j) => BookCoverRef(
-        imagePath: j['imagePath'] as String?,
-        colorValue: (j['colorValue'] as num?)?.toInt() ?? 0xFF7A2E2E,
-      );
+    imagePath: j['imagePath'] as String?,
+    colorValue: (j['colorValue'] as num?)?.toInt() ?? 0xFF7A2E2E,
+    design: j['design'] is Map ? BookDesign.fromJson(j['design'] as Map) : null,
+  );
 }
 
 @immutable
@@ -67,50 +76,49 @@ class Book {
     int? lastOpenedPage,
     DateTime? lastOpenedAt,
     ReadingMode? preferredReadingMode,
-  }) =>
-      Book(
-        id: id,
-        title: title ?? this.title,
-        subject: subject ?? this.subject,
-        folderRef: folderRef ?? this.folderRef,
-        cover: cover ?? this.cover,
-        pageCount: pageCount ?? this.pageCount,
-        lastOpenedPage: lastOpenedPage ?? this.lastOpenedPage,
-        lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
-        preferredReadingMode: preferredReadingMode ?? this.preferredReadingMode,
-      );
+  }) => Book(
+    id: id,
+    title: title ?? this.title,
+    subject: subject ?? this.subject,
+    folderRef: folderRef ?? this.folderRef,
+    cover: cover ?? this.cover,
+    pageCount: pageCount ?? this.pageCount,
+    lastOpenedPage: lastOpenedPage ?? this.lastOpenedPage,
+    lastOpenedAt: lastOpenedAt ?? this.lastOpenedAt,
+    preferredReadingMode: preferredReadingMode ?? this.preferredReadingMode,
+  );
 
   /// Suggested JSON shape for T2's metadata file. T2 may extend it.
   Map<String, Object?> toJson() => {
-        'id': id,
-        'title': title,
-        'subject': subject,
-        'folderRef': folderRef,
-        'cover': cover.toJson(),
-        'pageCount': pageCount,
-        'lastOpenedPage': lastOpenedPage,
-        'lastOpenedAt': lastOpenedAt?.toIso8601String(),
-        'preferredReadingMode': preferredReadingMode.name,
-      };
+    'id': id,
+    'title': title,
+    'subject': subject,
+    'folderRef': folderRef,
+    'cover': cover.toJson(),
+    'pageCount': pageCount,
+    'lastOpenedPage': lastOpenedPage,
+    'lastOpenedAt': lastOpenedAt?.toIso8601String(),
+    'preferredReadingMode': preferredReadingMode.name,
+  };
 
   factory Book.fromJson(Map<String, Object?> j) => Book(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        subject: (j['subject'] as String?) ?? 'General',
-        folderRef: j['folderRef'] as String,
-        cover: BookCoverRef.fromJson(
-          Map<String, Object?>.from((j['cover'] as Map?) ?? const {}),
-        ),
-        pageCount: (j['pageCount'] as num?)?.toInt() ?? 0,
-        lastOpenedPage: (j['lastOpenedPage'] as num?)?.toInt() ?? 1,
-        lastOpenedAt: j['lastOpenedAt'] == null
-            ? null
-            : DateTime.parse(j['lastOpenedAt'] as String),
-        preferredReadingMode: ReadingMode.values.firstWhere(
-          (m) => m.name == j['preferredReadingMode'],
-          orElse: () => ReadingMode.singlePage,
-        ),
-      );
+    id: j['id'] as String,
+    title: j['title'] as String,
+    subject: (j['subject'] as String?) ?? 'General',
+    folderRef: j['folderRef'] as String,
+    cover: BookCoverRef.fromJson(
+      Map<String, Object?>.from((j['cover'] as Map?) ?? const {}),
+    ),
+    pageCount: (j['pageCount'] as num?)?.toInt() ?? 0,
+    lastOpenedPage: (j['lastOpenedPage'] as num?)?.toInt() ?? 1,
+    lastOpenedAt: j['lastOpenedAt'] == null
+        ? null
+        : DateTime.parse(j['lastOpenedAt'] as String),
+    preferredReadingMode: ReadingMode.values.firstWhere(
+      (m) => m.name == j['preferredReadingMode'],
+      orElse: () => ReadingMode.singlePage,
+    ),
+  );
 }
 
 /// One page of a book. In T2 each page maps to one TXT file.
@@ -139,12 +147,11 @@ class BookPage {
     String? fileName,
     String? content,
     DateTime? updatedAt,
-  }) =>
-      BookPage(
-        bookId: bookId,
-        number: number ?? this.number,
-        fileName: fileName ?? this.fileName,
-        content: content ?? this.content,
-        updatedAt: updatedAt ?? this.updatedAt,
-      );
+  }) => BookPage(
+    bookId: bookId,
+    number: number ?? this.number,
+    fileName: fileName ?? this.fileName,
+    content: content ?? this.content,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 }

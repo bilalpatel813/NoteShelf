@@ -662,7 +662,11 @@ class BookStore {
 
   void _applyCoverRef(_Entry e, int colorValue) {
     e.book = e.book.copyWith(
-      cover: BookCoverRef(imagePath: _coverPathFor(e), colorValue: colorValue),
+      cover: BookCoverRef(
+        imagePath: _coverPathFor(e),
+        colorValue: colorValue,
+        design: e.book.cover.design,
+      ),
     );
   }
 
@@ -723,6 +727,11 @@ class BookStore {
     final cover = j['cover'] is Map ? j['cover'] as Map : const {};
     e.coverName = _safeCoverName(cover['imagePath']);
     e.book = e.book.copyWith(
+      cover: BookCoverRef.fromJson({
+        ...Map<String, Object?>.from(cover),
+        'imagePath': e.coverName,
+        if (cover['colorValue'] is! num) 'colorValue': e.book.cover.colorValue,
+      }),
       title: str('title'),
       subject: str('subject'),
       lastOpenedPage: j['lastOpenedPage'] is num
@@ -799,7 +808,7 @@ class BookStore {
       'title': b.title,
       'subject': b.subject,
       'createdAt': (e.createdAt ?? _now()).toIso8601String(),
-      'cover': {'imagePath': e.coverName, 'colorValue': b.cover.colorValue},
+      'cover': {...b.cover.toJson(), 'imagePath': e.coverName},
       'lastOpenedPage': b.lastOpenedPage,
       'lastOpenedAt': b.lastOpenedAt?.toIso8601String(),
       'preferredReadingMode': b.preferredReadingMode.name,
@@ -1042,6 +1051,17 @@ class BookStore {
   Future<void> updateBook(Book book) => _lock.run(() async {
         final e = _entry(book.id);
         if (!e.metaLoaded) await _sync(e);
+        final incoming = book.cover.imagePath;
+        if (incoming == null) {
+          e.coverName = null;
+        } else if (incoming != _coverPathFor(e)) {
+          final name = await _importCover(e.ref, incoming);
+          if (name == null) {
+            throw const StorageException(
+                StorageErrorKind.io, 'Could not import the cover artwork.');
+          }
+          e.coverName = name;
+        }
         final title = book.title.trim();
         e.book = e.book.copyWith(
           title: title.isEmpty ? null : title,
@@ -1050,14 +1070,7 @@ class BookStore {
           lastOpenedAt: book.lastOpenedAt,
           preferredReadingMode: book.preferredReadingMode,
         );
-        final incoming = book.cover.imagePath;
-        if (incoming == null) {
-          e.coverName = null;
-        } else if (incoming != _coverPathFor(e)) {
-          final name = await _importCover(e.ref, incoming);
-          if (name != null)
-            e.coverName = name; // failed import keeps the old cover
-        }
+        e.book = e.book.copyWith(cover: book.cover);
         _applyCoverRef(e, book.cover.colorValue);
         await _commit(e);
         await _refreshCoverCache(e);

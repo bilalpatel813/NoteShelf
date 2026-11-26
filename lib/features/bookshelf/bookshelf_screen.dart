@@ -9,9 +9,11 @@ import '../../core/models/book.dart';
 import '../../core/theme/app_theme.dart';
 import 'book_card.dart';
 import '../../data/storage/t2_actions.dart';
+import '../../data/storage/txt_repositories.dart';
 import 'bookshelf_providers.dart';
+import 'cover_editor.dart';
 
-enum _BookAction { open, select, info, rename, export, delete }
+enum _BookAction { open, select, info, rename, customize, export, delete }
 
 class BookshelfScreen extends ConsumerStatefulWidget {
   const BookshelfScreen({super.key});
@@ -31,12 +33,11 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   bool get _desktop => switch (Theme.of(context).platform) {
-        TargetPlatform.windows ||
-        TargetPlatform.linux ||
-        TargetPlatform.macOS =>
-          true,
-        _ => false,
-      };
+    TargetPlatform.windows ||
+    TargetPlatform.linux ||
+    TargetPlatform.macOS => true,
+    _ => false,
+  };
 
   // ----------------------------------------------------------------- actions
 
@@ -59,8 +60,10 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _showContextMenu(Book book, Offset position) async {
-    final selected =
-        ref.read(shelfControllerProvider).selectedIds.contains(book.id);
+    final selected = ref
+        .read(shelfControllerProvider)
+        .selectedIds
+        .contains(book.id);
     final entries = <(_BookAction, IconData, String)>[
       (_BookAction.open, Icons.menu_book_outlined, 'Open'),
       (
@@ -70,6 +73,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
       ),
       (_BookAction.info, Icons.info_outline, 'Book info'),
       (_BookAction.rename, Icons.drive_file_rename_outline, 'Rename'),
+      (_BookAction.customize, Icons.palette_outlined, 'Customize cover'),
       (_BookAction.export, Icons.ios_share_outlined, 'Export as ZIP'),
       (_BookAction.delete, Icons.delete_outline, 'Delete'),
     ];
@@ -148,12 +152,26 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
         _showInfo(book);
       case _BookAction.rename:
         await _rename(book);
+      case _BookAction.customize:
+        await _customize(book);
       case _BookAction.export:
         final a = ref.read(bookshelfActionsProvider);
         if (a is T2Actions) await a.exportBookAsZip(context, book);
       case _BookAction.delete:
         await _confirmDelete([book]);
     }
+  }
+
+  Future<void> _customize(Book book) async {
+    final repo = ref.read(bookRepositoryProvider);
+    final platform = repo is TxtBookRepository ? repo.platform : null;
+    final updated = await showDialog<Book>(
+      context: context,
+      builder: (_) =>
+          CoverEditor(book: book, pickImage: platform?.pickCoverImage),
+    );
+    if (updated == null || !mounted) return;
+    await _storageOp(() => repo.updateBook(updated));
   }
 
   Future<void> _rename(Book book) async {
@@ -213,19 +231,18 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
   void _showInfo(Book book) {
     Widget row(String k, String v) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 110,
-                child: Text(k,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-              ),
-              Expanded(child: Text(v)),
-            ],
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(k, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
-        );
+          Expanded(child: Text(v)),
+        ],
+      ),
+    );
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -253,8 +270,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _confirmDelete(List<Book> books) async {
-    final label =
-        books.length == 1 ? '"${books.first.title}"' : '${books.length} books';
+    final label = books.length == 1
+        ? '"${books.first.title}"'
+        : '${books.length} books';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -295,8 +313,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
     final PreferredSizeWidget appBar;
     if (shelf.selecting) {
-      final selectedBooks =
-          visible.where((b) => shelf.selectedIds.contains(b.id)).toList();
+      final selectedBooks = visible
+          .where((b) => shelf.selectedIds.contains(b.id))
+          .toList();
       appBar = AppBar(
         leading: IconButton(
           tooltip: 'Clear selection',
@@ -327,7 +346,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
       );
     } else {
       final mode = ref.watch(themeModeProvider);
-      final isDark = mode == ThemeMode.dark ||
+      final isDark =
+          mode == ThemeMode.dark ||
           (mode == ThemeMode.system &&
               MediaQuery.platformBrightnessOf(context) == Brightness.dark);
       appBar = AppBar(

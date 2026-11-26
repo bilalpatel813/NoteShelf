@@ -52,8 +52,7 @@ class CompositeBackend implements StorageBackend {
     String n,
     Uint8List b, {
     bool overwrite = false,
-  }) =>
-      _for(r).writeBytes(r, n, b, overwrite: overwrite);
+  }) => _for(r).writeBytes(r, n, b, overwrite: overwrite);
   @override
   Future<void> delete(String r, String n) => _for(r).delete(r, n);
   @override
@@ -106,6 +105,18 @@ class StoragePlatform {
     final saf = _saf;
     if (saf != null) return saf.pickTree();
     return FilePicker.platform.getDirectoryPath(dialogTitle: 'Choose a folder');
+  }
+
+  /// An image document reference suitable for BookStore's existing importer.
+  Future<String?> pickCoverImage() async {
+    final saf = _saf;
+    if (saf != null) return saf.pickOpenDocument(['image/*']);
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Choose cover artwork',
+      type: FileType.custom,
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'],
+    );
+    return result?.files.single.path;
   }
 
   /// Picker for a ZIP to import. Returns a doc ref for readDocument().
