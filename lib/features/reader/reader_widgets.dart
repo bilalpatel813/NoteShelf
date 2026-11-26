@@ -143,14 +143,14 @@ class SpreadView extends StatelessWidget {
       controller.layout,
     );
     Widget sheet(int n, {required bool left}) => Expanded(
-      child: PageSheet(
-        controller: controller,
-        number: n,
-        interactive: interactive,
-        leftSide: left,
-        textSelectable: textSelectable,
-      ),
-    );
+          child: PageSheet(
+            controller: controller,
+            number: n,
+            interactive: interactive,
+            leftSide: left,
+            textSelectable: textSelectable,
+          ),
+        );
 
     if (controller.layout == ReaderLayout.folded) {
       return Row(children: [sheet(s.left, left: false)]);
@@ -173,10 +173,10 @@ class _BlankSheet extends StatelessWidget {
   final BookDesign? design;
   @override
   Widget build(BuildContext context) => BookPageSurface(
-    design: design,
-    blank: true,
-    child: const SizedBox.expand(),
-  );
+        design: design,
+        blank: true,
+        child: const SizedBox.expand(),
+      );
 }
 
 /// One page. Edit mode: multi-line TextField bound to the controller-owned
@@ -430,17 +430,17 @@ class _LoadFailed extends StatelessWidget {
   final VoidCallback onRetry;
   @override
   Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.error_outline),
-        const SizedBox(height: 8),
-        const Text('This page could not be loaded.'),
-        const SizedBox(height: 8),
-        OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
-      ],
-    ),
-  );
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline),
+            const SizedBox(height: 8),
+            const Text('This page could not be loaded.'),
+            const SizedBox(height: 8),
+            OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+          ],
+        ),
+      );
 }
 
 // =============================================================================
@@ -529,8 +529,8 @@ class SaveStatusChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           text,
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: color),
+          style:
+              Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
         ),
       ],
     );

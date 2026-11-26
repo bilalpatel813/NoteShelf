@@ -29,29 +29,29 @@ class BookDesign {
   final bool bookmark;
 
   factory BookDesign.preset(BookTheme theme) => switch (theme) {
-    BookTheme.basic => const BookDesign(),
-    BookTheme.medieval => const BookDesign(
-      theme: BookTheme.medieval,
-      icon: CoverIcon.quill,
-      decoration: CoverDecoration.ornate,
-    ),
-    BookTheme.minecraft => const BookDesign(
-      theme: BookTheme.minecraft,
-      icon: CoverIcon.quill,
-      texture: BookTexture.pixels,
-    ),
-    BookTheme.diary => const BookDesign(
-      theme: BookTheme.diary,
-      icon: CoverIcon.flower,
-      texture: BookTexture.ruled,
-      bookmark: true,
-    ),
-    BookTheme.pixelated => const BookDesign(
-      theme: BookTheme.pixelated,
-      icon: CoverIcon.star,
-      texture: BookTexture.pixels,
-    ),
-  };
+        BookTheme.basic => const BookDesign(),
+        BookTheme.medieval => const BookDesign(
+            theme: BookTheme.medieval,
+            icon: CoverIcon.quill,
+            decoration: CoverDecoration.ornate,
+          ),
+        BookTheme.minecraft => const BookDesign(
+            theme: BookTheme.minecraft,
+            icon: CoverIcon.quill,
+            texture: BookTexture.pixels,
+          ),
+        BookTheme.diary => const BookDesign(
+            theme: BookTheme.diary,
+            icon: CoverIcon.flower,
+            texture: BookTexture.ruled,
+            bookmark: true,
+          ),
+        BookTheme.pixelated => const BookDesign(
+            theme: BookTheme.pixelated,
+            icon: CoverIcon.star,
+            texture: BookTexture.pixels,
+          ),
+      };
 
   BookDesign copyWith({
     BookTheme? theme,
@@ -61,25 +61,26 @@ class BookDesign {
     CoverDecoration? decoration,
     BookTexture? texture,
     bool? bookmark,
-  }) => BookDesign(
-    theme: theme ?? this.theme,
-    subtitle: subtitle ?? this.subtitle,
-    author: author ?? this.author,
-    icon: icon ?? this.icon,
-    decoration: decoration ?? this.decoration,
-    texture: texture ?? this.texture,
-    bookmark: bookmark ?? this.bookmark,
-  );
+  }) =>
+      BookDesign(
+        theme: theme ?? this.theme,
+        subtitle: subtitle ?? this.subtitle,
+        author: author ?? this.author,
+        icon: icon ?? this.icon,
+        decoration: decoration ?? this.decoration,
+        texture: texture ?? this.texture,
+        bookmark: bookmark ?? this.bookmark,
+      );
 
   Map<String, Object?> toJson() => {
-    'theme': theme.name,
-    'subtitle': subtitle,
-    'author': author,
-    'icon': icon.name,
-    'decoration': decoration.name,
-    'texture': texture.name,
-    'bookmark': bookmark,
-  };
+        'theme': theme.name,
+        'subtitle': subtitle,
+        'author': author,
+        'icon': icon.name,
+        'decoration': decoration.name,
+        'texture': texture.name,
+        'bookmark': bookmark,
+      };
 
   factory BookDesign.fromJson(Map raw) {
     T choice<T extends Enum>(List<T> values, Object? value, T fallback) =>
@@ -97,9 +98,8 @@ class BookDesign {
         defaults.decoration,
       ),
       texture: choice(BookTexture.values, raw['texture'], defaults.texture),
-      bookmark: raw['bookmark'] is bool
-          ? raw['bookmark'] as bool
-          : defaults.bookmark,
+      bookmark:
+          raw['bookmark'] is bool ? raw['bookmark'] as bool : defaults.bookmark,
     );
   }
 }
