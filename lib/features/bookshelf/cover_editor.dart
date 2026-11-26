@@ -20,6 +20,8 @@ class _CoverEditorState extends State<CoverEditor> {
   late int color;
   String? image;
   String? error;
+  String? artworkError;
+  bool pickingImage = false;
 
   static const colors = <int, String>{
     0xFF7A2E2E: 'Burgundy',
@@ -67,11 +69,20 @@ class _CoverEditorState extends State<CoverEditor> {
       );
 
   Future<void> chooseImage() async {
+    setState(() {
+      pickingImage = true;
+      artworkError = null;
+    });
     try {
       final picked = await widget.pickImage!();
-      if (mounted && picked != null) setState(() => image = picked);
+      if (mounted && picked != null && picked.trim().isNotEmpty) {
+        setState(() => image = picked);
+      }
     } catch (e) {
-      if (mounted) setState(() => error = 'Could not choose artwork: $e');
+      if (mounted)
+        setState(() => artworkError = 'Could not choose artwork: $e');
+    } finally {
+      if (mounted) setState(() => pickingImage = false);
     }
   }
 
@@ -89,7 +100,9 @@ class _CoverEditorState extends State<CoverEditor> {
                   child: SizedBox(
                     width: 120,
                     height: 180,
-                    child: BookCoverView(book: draft, width: 120),
+                    child: MediaQuery.withNoTextScaling(
+                      child: BookCoverView(book: draft, width: 120),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -152,6 +165,7 @@ class _CoverEditorState extends State<CoverEditor> {
                   ],
                 ),
                 DropdownButtonFormField<CoverIcon>(
+                  key: ValueKey(design.icon),
                   value: design.icon,
                   decoration: const InputDecoration(labelText: 'Icon'),
                   items: [
@@ -165,6 +179,7 @@ class _CoverEditorState extends State<CoverEditor> {
                   },
                 ),
                 DropdownButtonFormField<CoverDecoration>(
+                  key: ValueKey(design.decoration),
                   value: design.decoration,
                   decoration: const InputDecoration(
                     labelText: 'Border / decoration',
@@ -180,6 +195,7 @@ class _CoverEditorState extends State<CoverEditor> {
                   },
                 ),
                 DropdownButtonFormField<BookTexture>(
+                  key: ValueKey(design.texture),
                   value: design.texture,
                   decoration: const InputDecoration(labelText: 'Texture'),
                   items: [
@@ -204,13 +220,15 @@ class _CoverEditorState extends State<CoverEditor> {
                   children: [
                     if (widget.pickImage != null)
                       OutlinedButton.icon(
-                        onPressed: chooseImage,
+                        onPressed: pickingImage ? null : chooseImage,
                         icon: const Icon(Icons.image_outlined),
                         label: const Text('Choose artwork'),
                       ),
                     if (image != null)
                       TextButton(
-                        onPressed: () => setState(() => image = null),
+                        onPressed: pickingImage
+                            ? null
+                            : () => setState(() => image = null),
                         child: const Text('Use generated cover'),
                       ),
                   ],
@@ -218,6 +236,12 @@ class _CoverEditorState extends State<CoverEditor> {
                 if (image != null)
                   const Text(
                     'Artwork replaces the generated cover. Other choices still apply to pages.',
+                  ),
+                if (artworkError != null)
+                  Text(
+                    artworkError!,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error),
                   ),
               ],
             ),
@@ -229,13 +253,15 @@ class _CoverEditorState extends State<CoverEditor> {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              if (title.text.trim().isEmpty) {
-                setState(() => error = 'A title is required');
-                return;
-              }
-              Navigator.pop(context, draft);
-            },
+            onPressed: pickingImage
+                ? null
+                : () {
+                    if (title.text.trim().isEmpty) {
+                      setState(() => error = 'A title is required');
+                      return;
+                    }
+                    Navigator.pop(context, draft);
+                  },
             child: const Text('Save'),
           ),
         ],

@@ -14,9 +14,9 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../core/models/book_design.dart';
-import '../../core/theme/book_visuals.dart';
 import 'reader_controller.dart';
 import 'reader_models.dart';
+import 'reader_page_surface.dart';
 
 // =============================================================================
 // Animation seam (T4)
@@ -169,12 +169,14 @@ class SpreadView extends StatelessWidget {
 }
 
 class _BlankSheet extends StatelessWidget {
-  const _BlankSheet({this.design});
+  const _BlankSheet({this.design, this.leftSide = false});
   final BookDesign? design;
+  final bool leftSide;
   @override
-  Widget build(BuildContext context) => BookPageSurface(
+  Widget build(BuildContext context) => ReaderPageSurface(
         design: design,
         blank: true,
+        leftSide: leftSide,
         child: const SizedBox.expand(),
       );
 }
@@ -202,12 +204,18 @@ class PageSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final b = controller.bufferFor(number);
     final scheme = Theme.of(context).colorScheme;
-    if (b == null) return _BlankSheet(design: controller.book.cover.design);
+    if (b == null) {
+      return _BlankSheet(
+        design: controller.book.cover.design,
+        leftSide: leftSide,
+      );
+    }
     final style = controller.typography.toTextStyle(context);
     final edit = controller.isEdit && interactive;
 
-    return BookPageSurface(
+    return ReaderPageSurface(
       design: controller.book.cover.design,
+      leftSide: leftSide,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
         child: Column(
