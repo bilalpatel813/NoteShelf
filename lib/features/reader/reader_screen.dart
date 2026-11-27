@@ -59,8 +59,25 @@ Future<void> Function(BuildContext, Book) openReader(Ref ref) =>
     (context, book) {
       final storage = BookStoreReaderStorage(ref.read(bookStoreProvider));
       return Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) => ReaderScreen(book: book, storage: storage),
+        PageRouteBuilder<void>(
+          transitionDuration: const Duration(milliseconds: 240),
+          reverseTransitionDuration: const Duration(milliseconds: 180),
+          pageBuilder: (_, __, ___) =>
+              ReaderScreen(book: book, storage: storage),
+          transitionsBuilder: (context, animation, _, child) {
+            if (MediaQuery.disableAnimationsOf(context)) return child;
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween(begin: 0.98, end: 1.0).animate(curved),
+                child: child,
+              ),
+            );
+          },
         ),
       );
     };

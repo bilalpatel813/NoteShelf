@@ -1058,7 +1058,9 @@ class BookStore {
           final name = await _importCover(e.ref, incoming);
           if (name == null) {
             throw const StorageException(
-                StorageErrorKind.io, 'Could not import the cover artwork.');
+              StorageErrorKind.io,
+              'Could not import the cover artwork.',
+            );
           }
           e.coverName = name;
         }

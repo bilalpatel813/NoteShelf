@@ -71,11 +71,16 @@ void main() {
     await tester.tap(find.text('Customize cover'));
     await tester.pumpAndSettle();
     await tester.enterText(
-        find.widgetWithText(TextField, 'Title'), 'Edited title');
+      find.widgetWithText(TextField, 'Title'),
+      'Edited title',
+    );
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    final card = tester.widget<BookCard>(find.byWidgetPredicate(
-        (widget) => widget is BookCard && widget.book.title == 'Edited title'));
+    final card = tester.widget<BookCard>(
+      find.byWidgetPredicate(
+        (widget) => widget is BookCard && widget.book.title == 'Edited title',
+      ),
+    );
     expect(card.book.title, 'Edited title');
     expect(card.book.cover.design!.theme, BookTheme.basic);
   });

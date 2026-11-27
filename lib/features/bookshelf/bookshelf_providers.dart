@@ -130,7 +130,9 @@ final visibleBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
           (b) =>
               q.isEmpty ||
               b.title.toLowerCase().contains(q) ||
-              b.subject.toLowerCase().contains(q),
+              b.subject.toLowerCase().contains(q) ||
+              (b.cover.design?.author.toLowerCase().contains(q) ?? false) ||
+              (b.cover.design?.subtitle.toLowerCase().contains(q) ?? false),
         )
         .toList();
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
@@ -145,7 +147,10 @@ final visibleBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
               : a.subject.toLowerCase().compareTo(b.subject.toLowerCase()),
           BookSort.pages => a.pageCount.compareTo(b.pageCount),
         };
-    list.sort((a, b) => shelf.ascending ? cmp(a, b) : cmp(b, a));
+    list.sort((a, b) {
+      final order = shelf.ascending ? cmp(a, b) : cmp(b, a);
+      return order != 0 ? order : a.id.compareTo(b.id);
+    });
     return list;
   });
 });

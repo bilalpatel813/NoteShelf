@@ -45,7 +45,10 @@ class DesignedBookCover extends StatelessWidget {
               IgnorePointer(
                 child: CustomPaint(
                   painter: _CoverArtworkPainter(
-                      design.theme, design.decoration, ink),
+                    design.theme,
+                    design.decoration,
+                    ink,
+                  ),
                 ),
               ),
               IgnorePointer(
@@ -174,7 +177,9 @@ class _CoverArtworkPainter extends CustomPainter {
           for (var x = 0; x < 10; x++) {
             if ((x * 7 + y * 3) % 4 == 0) {
               canvas.drawRect(
-                  Rect.fromLTWH(x * 10.0, 119 + y * 10.0, 6, 6), shade);
+                Rect.fromLTWH(x * 10.0, 119 + y * 10.0, 6, 6),
+                shade,
+              );
             }
           }
         }
@@ -190,11 +195,12 @@ class _CoverArtworkPainter extends CustomPainter {
         for (var y = 15.0; y < 145; y += 13) {
           canvas.drawCircle(Offset(15, y), 1.3, shade);
           canvas.drawLine(
-              Offset(12, y),
-              Offset(17, y),
-              Paint()
-                ..color = ink.withValues(alpha: .55)
-                ..strokeWidth = .7);
+            Offset(12, y),
+            Offset(17, y),
+            Paint()
+              ..color = ink.withValues(alpha: .55)
+              ..strokeWidth = .7,
+          );
         }
         final heart = Paint()..color = ink.withValues(alpha: .55);
         for (final x in [29.0, 83.0]) {
@@ -217,11 +223,18 @@ class _CoverArtworkPainter extends CustomPainter {
       case BookTheme.pixelated:
         for (var i = 0; i < 8; i++) {
           canvas.drawRect(
-              Rect.fromLTWH(20 + i * 10.0, 0, 10, i.isEven ? 8 : 14), shade);
+            Rect.fromLTWH(20 + i * 10.0, 0, 10, i.isEven ? 8 : 14),
+            shade,
+          );
           canvas.drawRect(
-              Rect.fromLTWH(
-                  20 + i * 10.0, i.isEven ? 141 : 135, 10, i.isEven ? 9 : 15),
-              highlight);
+            Rect.fromLTWH(
+              20 + i * 10.0,
+              i.isEven ? 141 : 135,
+              10,
+              i.isEven ? 9 : 15,
+            ),
+            highlight,
+          );
         }
         final gold = Paint()..color = const Color(0xFFE9C85E);
         for (final x in [19.0, 84.0]) {
@@ -275,20 +288,18 @@ class _PixelStarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const rows = [
-      '00100',
-      '01110',
-      '11111',
-      '01110',
-      '01010',
-    ];
+    const rows = ['00100', '01110', '11111', '01110', '01010'];
     final paint = Paint()..color = color;
     for (var y = 0; y < rows.length; y++) {
       for (var x = 0; x < rows[y].length; x++) {
         if (rows[y][x] == '1') {
           canvas.drawRect(
-            Rect.fromLTWH(x * size.width / 5, y * size.height / 5,
-                size.width / 5, size.height / 5),
+            Rect.fromLTWH(
+              x * size.width / 5,
+              y * size.height / 5,
+              size.width / 5,
+              size.height / 5,
+            ),
             paint,
           );
         }
@@ -398,7 +409,11 @@ class _TexturePainter extends CustomPainter {
           final w = texture == BookTexture.pixels ? step * .7 : spacingScale;
           canvas.drawRect(
             Rect.fromLTWH(
-                x, y, w, texture == BookTexture.pixels ? w : 2 * spacingScale),
+              x,
+              y,
+              w,
+              texture == BookTexture.pixels ? w : 2 * spacingScale,
+            ),
             paint,
           );
         }
@@ -422,18 +437,27 @@ class _QuillPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = Path()
       ..moveTo(size.width * .14, size.height * .91)
-      ..quadraticBezierTo(size.width * .17, size.height * .22, size.width * .9,
-          size.height * .08)
-      ..quadraticBezierTo(size.width * .85, size.height * .65, size.width * .14,
-          size.height * .91)
+      ..quadraticBezierTo(
+        size.width * .17,
+        size.height * .22,
+        size.width * .9,
+        size.height * .08,
+      )
+      ..quadraticBezierTo(
+        size.width * .85,
+        size.height * .65,
+        size.width * .14,
+        size.height * .91,
+      )
       ..close();
     canvas.drawPath(path, Paint()..color = color);
     canvas.drawLine(
-        Offset(size.width * .12, size.height * .94),
-        Offset(size.width * .75, size.height * .24),
-        Paint()
-          ..color = Colors.black54
-          ..strokeWidth = size.width * .045);
+      Offset(size.width * .12, size.height * .94),
+      Offset(size.width * .75, size.height * .24),
+      Paint()
+        ..color = Colors.black54
+        ..strokeWidth = size.width * .045,
+    );
   }
 
   @override

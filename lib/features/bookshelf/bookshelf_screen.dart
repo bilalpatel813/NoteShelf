@@ -23,8 +23,9 @@ class BookshelfScreen extends ConsumerStatefulWidget {
 }
 
 class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
-  static const double _wideBreakpoint = 720;
+  static const double _wideBreakpoint = 900;
   final _search = TextEditingController();
+  bool _opening = false;
 
   @override
   void dispose() {
@@ -42,8 +43,17 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
 
   // ----------------------------------------------------------------- actions
 
-  void _openBook(Book book) =>
-      ref.read(bookshelfActionsProvider).openBook(context, book);
+  Future<void> _openBook(Book book) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      await ref.read(bookshelfActionsProvider).openBook(context, book);
+    } catch (e) {
+      if (mounted) await _storageOp(() async => throw e);
+    } finally {
+      _opening = false;
+    }
+  }
 
   void _onCardTap(Book book) {
     final ctrl = ref.read(shelfControllerProvider.notifier);
@@ -73,7 +83,8 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
       (_BookAction.info, Icons.info_outline, 'Book info'),
       (_BookAction.rename, Icons.drive_file_rename_outline, 'Rename'),
       (_BookAction.customize, Icons.palette_outlined, 'Customize cover'),
-      (_BookAction.export, Icons.ios_share_outlined, 'Export as ZIP'),
+      if (ref.read(bookshelfActionsProvider) is T2Actions)
+        (_BookAction.export, Icons.ios_share_outlined, 'Export as ZIP'),
       (_BookAction.delete, Icons.delete_outline, 'Delete'),
     ];
 
@@ -174,30 +185,10 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 
   Future<void> _rename(Book book) async {
-    final c = TextEditingController(text: book.title);
     final name = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename book'),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Title'),
-          onSubmitted: (v) => Navigator.pop(ctx, v),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text),
-            child: const Text('Rename'),
-          ),
-        ],
-      ),
+      builder: (_) => _RenameDialog(title: book.title),
     );
-    c.dispose();
     final t = name?.trim();
     if (t == null || t.isEmpty || t == book.title || !mounted) return;
     await _storageOp(
@@ -313,7 +304,9 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     final PreferredSizeWidget appBar;
     if (shelf.selecting) {
       final selectedBooks =
-          visible.where((b) => shelf.selectedIds.contains(b.id)).toList();
+          (ref.watch(booksStreamProvider).valueOrNull ?? const <Book>[])
+              .where((b) => shelf.selectedIds.contains(b.id))
+              .toList();
       appBar = AppBar(
         leading: IconButton(
           tooltip: 'Clear selection',
@@ -352,7 +345,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
           children: [
             Icon(Icons.auto_stories),
             SizedBox(width: 10),
-            Text('BookNotes'),
+            Flexible(child: Text('BookNotes', overflow: TextOverflow.ellipsis)),
           ],
         ),
         actions: [
@@ -371,19 +364,25 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
               icon: const Icon(Icons.folder_open),
               label: const Text('Import Folder'),
             ),
-          ] else
+          ],
+          if (!wide || actions is T2Actions)
             PopupMenuButton<String>(
               tooltip: 'More',
               onSelected: (v) {
                 if (v == 'zip' && actions is T2Actions) {
                   actions.importZip(context);
-                } else {
+                } else if (v == 'import') {
                   actions.importFolder(context);
                 }
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'import', child: Text('Import Folder')),
-                PopupMenuItem(value: 'zip', child: Text('Import ZIP')),
+              itemBuilder: (_) => [
+                if (!wide)
+                  const PopupMenuItem(
+                    value: 'import',
+                    child: Text('Import Folder'),
+                  ),
+                if (actions is T2Actions)
+                  const PopupMenuItem(value: 'zip', child: Text('Import ZIP')),
               ],
             ),
           IconButton(
@@ -428,8 +427,23 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
                   child: books.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) =>
-                        Center(child: Text('Could not load your library: $e')),
+                    error: (e, _) => Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Could not load your library: ${describeStorageError(e)}',
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () =>
+                                ref.invalidate(booksStreamProvider),
+                            child: const Text('Try again'),
+                          ),
+                        ],
+                      ),
+                    ),
                     data: (list) => list.isEmpty
                         ? _emptyState(shelf.query.isNotEmpty, actions)
                         : _shelf(list, shelf, ctrl, wide),
@@ -458,7 +472,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
                   controller: _search,
                   onChanged: ctrl.setQuery,
                   decoration: InputDecoration(
-                    hintText: 'Search title or subject',
+                    hintText: 'Search title, author or subject',
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: shelf.query.isEmpty
                         ? null
@@ -541,7 +555,7 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
             const SizedBox(height: 6),
             Text(
               searching
-                  ? 'Try a different title or subject.'
+                  ? 'Try a different title, author or subject.'
                   : 'Create a new book or import a folder to get started.',
             ),
             if (!searching) ...[
@@ -550,6 +564,20 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
                 onPressed: () => actions.newBook(context),
                 icon: const Icon(Icons.add),
                 label: const Text('New Book'),
+              ),
+              TextButton.icon(
+                onPressed: () => actions.importFolder(context),
+                icon: const Icon(Icons.folder_open),
+                label: const Text('Import Folder'),
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  _search.clear();
+                  ref.read(shelfControllerProvider.notifier).setQuery('');
+                },
+                child: const Text('Clear search'),
               ),
             ],
           ],
@@ -568,11 +596,11 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
     return LayoutBuilder(
       builder: (context, box) {
         const gap = 20.0;
-        final pad = wide ? 40.0 : 16.0;
+        final pad = math.min(wide ? 40.0 : 16.0, box.maxWidth / 8);
         final target = box.maxWidth >= 1200 ? 180.0 : (wide ? 165.0 : 130.0);
         final usable = box.maxWidth - pad * 2;
         final cols = math.max(1, ((usable + gap) / (target + gap)).floor());
-        final cardW = (usable - gap * (cols - 1)) / cols;
+        final cardW = math.min(target + 20, (usable - gap * (cols - 1)) / cols);
         final rowCount = (books.length / cols).ceil();
 
         return GestureDetector(
@@ -611,6 +639,44 @@ class _BookshelfScreenState extends ConsumerState<BookshelfScreen> {
   }
 }
 
+class _RenameDialog extends StatefulWidget {
+  const _RenameDialog({required this.title});
+  final String title;
+
+  @override
+  State<_RenameDialog> createState() => _RenameDialogState();
+}
+
+class _RenameDialogState extends State<_RenameDialog> {
+  late final TextEditingController controller =
+      TextEditingController(text: widget.title);
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Rename book'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Title'),
+          onSubmitted: (value) => Navigator.pop(context, value),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, controller.text),
+              child: const Text('Rename')),
+        ],
+      );
+}
+
 /// One shelf: books standing on a wooden plank that also carries their labels.
 class _ShelfRow extends StatelessWidget {
   const _ShelfRow({
@@ -629,6 +695,8 @@ class _ShelfRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = ShelfPalette.of(context);
     final coverH = cardWidth * 1.5;
+    final labelH = BookCard.labelHeight *
+        MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
     return Padding(
       padding: const EdgeInsets.only(bottom: 30),
       child: Stack(
@@ -638,7 +706,7 @@ class _ShelfRow extends StatelessWidget {
             left: 0,
             right: 0,
             top: coverH - 6,
-            height: BookCard.labelHeight + 14,
+            height: labelH + 14,
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

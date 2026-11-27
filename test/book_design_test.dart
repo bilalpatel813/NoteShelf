@@ -168,11 +168,12 @@ void main() {
       expect(find.byType(DesignedBookCover), findsOneWidget);
       expect(find.byType(BookPageSurface), findsOneWidget);
       expect(
-          tester
-              .widget<BookPageSurface>(find.byType(BookPageSurface))
-              .design!
-              .theme,
-          theme);
+        tester
+            .widget<BookPageSurface>(find.byType(BookPageSurface))
+            .design!
+            .theme,
+        theme,
+      );
       controller.layout = ReaderLayout.unfolded;
       await tester.pumpWidget(
         MaterialApp(
@@ -323,7 +324,8 @@ void main() {
       await tester.tap(find.text('Edit'));
       await tester.pumpAndSettle();
       await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 100)));
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
       await tester.pumpAndSettle();
       expect(find.byType(DesignedBookCover), findsOneWidget);
       await tester.ensureVisible(find.text('Theme'));
